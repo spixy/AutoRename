@@ -313,25 +313,6 @@ namespace QRename
                 label1.Show();
         }
 
-        /*private void DirRename(string dir)
-        {
-            List<string> oldlist = new List<string>();
-            List<string> newlist = new List<string>();
-
-            for (int i = 0; i < settings.Length; i++)
-            {
-                if (settings[i].Enabled)
-                {
-                    string[] str = Directory.GetFiles(dir, "*" + settings[i].Ext);
-                    oldlist.AddRange(str);
-
-                    foreach (string s in str)
-                        newlist.Add(QRename(s));
-                }
-            }
-            dataGridView1.AddLines(ShowExtension, ShowFullPath, oldlist.ToArray(), newlist.ToArray());
-        }*/
-
         private void wordsWithUpperCaseToolStripMenuItem_Click(object sender, EventArgs e)
         {
             dataGridView1.Enabled = false;

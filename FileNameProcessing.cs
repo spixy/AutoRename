@@ -7,9 +7,12 @@ namespace QRename
         /// <summary>
         /// Make each word to start with upper case
         /// </summary>
-        public static string ChangeToUpperCase(string subor)
+        public static string ChangeToUpperCase(string text)
         {
-            string[] words = subor.Split(' ');
+            if (string.IsNullOrEmpty(text))
+                return string.Empty;
+
+            string[] words = text.Split(' ');
 
             string result = string.Empty;
 

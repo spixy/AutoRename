@@ -81,6 +81,7 @@
             this.dataGridView1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dataGridView1.EditMode = System.Windows.Forms.DataGridViewEditMode.EditOnEnter;
             this.dataGridView1.Location = new System.Drawing.Point(0, 28);
+            this.dataGridView1.MultiSelect = false;
             this.dataGridView1.Name = "dataGridView1";
             this.dataGridView1.RowHeadersVisible = false;
             this.dataGridView1.RowHeadersWidth = 18;
@@ -112,21 +113,20 @@
             this.clearSelectedToolStripMenuItem,
             this.clearAllToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(207, 52);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(176, 80);
             // 
             // clearSelectedToolStripMenuItem
             // 
             this.clearSelectedToolStripMenuItem.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
             this.clearSelectedToolStripMenuItem.Name = "clearSelectedToolStripMenuItem";
-            this.clearSelectedToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.Delete;
-            this.clearSelectedToolStripMenuItem.Size = new System.Drawing.Size(206, 24);
+            this.clearSelectedToolStripMenuItem.Size = new System.Drawing.Size(175, 24);
             this.clearSelectedToolStripMenuItem.Text = "Clear selected";
             this.clearSelectedToolStripMenuItem.Click += new System.EventHandler(this.clearSelectedToolStripMenuItem_Click);
             // 
             // clearAllToolStripMenuItem
             // 
             this.clearAllToolStripMenuItem.Name = "clearAllToolStripMenuItem";
-            this.clearAllToolStripMenuItem.Size = new System.Drawing.Size(206, 24);
+            this.clearAllToolStripMenuItem.Size = new System.Drawing.Size(175, 24);
             this.clearAllToolStripMenuItem.Text = "Clear all";
             this.clearAllToolStripMenuItem.Click += new System.EventHandler(this.clearAllToolStripMenuItem_Click);
             // 
