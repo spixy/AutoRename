@@ -29,114 +29,129 @@ namespace QRename
         /// <summary>
         /// Get new file name
         /// </summary>
-        public static string QRename(string file, bool uppercase)
+        public static string QRename(string file, bool upperCase)
         {
+            string newStr;
             bool isDirectory = Directory.Exists(file);
-            string newstr = string.Empty;
 
-            int slashpos = file.LastIndexOf('\\') + 1;
-            if (slashpos == 0) slashpos = file.LastIndexOf('/') + 1;
+            FileInfo fi = new FileInfo(file);
+            string directory = fi.DirectoryName;
+            file = fi.Name;
 
-            string directory = file.Substring(0, slashpos);
-            file = file.Substring(slashpos);
-            char sep = FindSeparator(file, true);
+            char separator = FindSeparator(file);
 
-            switch (sep)
+            switch (separator)
             {
                 case '-':
-                    for (int j = 0; j < file.Length; j++)
-                    {
-                        if (file[j] == sep)
-                        {
-                            if ((j > 0) && (file[j - 1] != newstr[newstr.Length - 1]))
-                                newstr += '-';
-                            else newstr += ' ';
-                        }
-                        else
-                        {
-                            newstr += file[j];
-                        }
-                    }
+                    newStr = ProcessHyphen(file);
                     break;
 
                 case '.':
                     int bodkaIndex = file.LastIndexOf('.');
-                    newstr = file.Replace(sep, ' ');
-                    if (!isDirectory)
-                        newstr = Utility.ReplaceChar(newstr, bodkaIndex, '.');
-                    break;
-
-                case 'X':
-                    sep = FindSeparator(file, false);
-
-                    newstr = file.Replace(" " + sep + " ", "/X/");
-                    newstr = newstr.Replace(" " + sep, "/X");
-                    newstr = newstr.Replace(sep + " ", "X/");
-
-                    newstr = newstr.Replace(sep, ' ');
-
-                    newstr = newstr.Replace("/X/", " " + sep + " ");
-                    newstr = newstr.Replace("/X", " " + sep);
-                    newstr = newstr.Replace("X/", sep + " ");
+                    newStr = file.Replace('.', ' ');
+                    if (!isDirectory && bodkaIndex >= 0)
+                    {
+                        newStr = newStr.ReplaceChar(bodkaIndex, '.');
+                    }
                     break;
 
                 case ' ':
-                    newstr = file;
+                    newStr = file;
                     break;
 
                 case '%':
-                    newstr = file.Replace("%20", " ");
+                    newStr = file.Replace("%20", " ");
                     break;
 
                 default:
-                    newstr = file.Replace(sep, ' ');
+                    newStr = ProcessDefault(file, separator);
                     break;
             }
 
-            if (uppercase)
+            if (upperCase)
             {
-                newstr = ChangeToUpperCase(newstr);
+                newStr = ChangeToUpperCase(newStr);
             }
 
-            newstr = directory + newstr;
+            newStr = new FileInfo(directory + "\\" + newStr).FullName;
 
-            return PostProcess(newstr);
+            return PostProcess(newStr);
         }
 
-        private static char FindSeparator(string str, bool primary)
+        private static string ProcessHyphen(string file)
         {
-            int podtrznik = 0;
-            int pomlcka = 0;
-            int bodka = -1;
-            int perc20 = 0;
+            string newStr = string.Empty;
+
+            for (int j = 0; j < file.Length; j++)
+            {
+                if (file[j] == '-')
+                {
+                    if ((j > 0) && (file[j - 1] != newStr[newStr.Length - 1]))
+                        newStr += '-';
+                    else
+                        newStr += ' ';
+                }
+                else
+                {
+                    newStr += file[j];
+                }
+            }
+            return newStr;
+        }
+
+        private static string ProcessDefault(string file, char separator)
+        {
+            string newStr = file.Replace(separator, ' ');
+
+            if (newStr.Contains("-"))
+            {
+                for (int j = 1; j < newStr.Length - 1; j++)
+                {
+                    if ((newStr[j] == '-') && (newStr[j - 1] != ' ') && (newStr[j + 1] != ' '))
+                    {
+                        newStr = newStr.Insert(j, " ").Insert(j + 2, " ");
+                        j++;
+                    }
+                }
+            }
+            return newStr;
+        }
+
+        private static char FindSeparator(string str)
+        {
+            int hyphens = 0;
+            int dots = 0;
+            int perc20s = 0;
+
+            if (str.Contains(" "))
+                return ' ';
 
             for (int i = 0; i < str.Length; i++)
                 switch (str[i])
                 {
                     case '_':
-                        podtrznik++;
-                        break;
+                        return '_';
+
                     case '.':
-                        bodka++;
+                        dots++;
                         break;
+
                     case '-':
-                        pomlcka++;
+                        hyphens++;
                         break;
-                    case ' ':
-                        if (primary) return ' ';
-                        break;
-                    case '0':
+
+                    case '0': // "%20"
                         if ((i > 1) && (str[i - 1] == '2') && (str[i - 2] == '%'))
-                            perc20++;
+                            perc20s++;
                         break;
                 }
 
-            int[] pocet = { podtrznik, pomlcka, bodka, perc20 };
-            char[] separatory = { ' ', '_', '-', '.', '%' };
+            int[] array = { hyphens, dots, perc20s };
+            char[] separators = { ' ', '-', '.', '%' };
 
-            int index = Utility.Max(pocet) + 1;
+            int index = Utility.Max(array) + 1;
 
-            return separatory[index];
+            return separators[index];
         }
 
         private static string PostProcess(string file)
@@ -149,14 +164,14 @@ namespace QRename
             {
                 if (s == ' ')
                 {
-                    if (lastSpace) // dalsie
+                    if (lastSpace) // next
                         continue;
 
-                    lastSpace = true; // prva
+                    lastSpace = true; // first
                 }
                 else
                 {
-                    lastSpace = false; // ziadna
+                    lastSpace = false; // none
                 }
 
                 newFile += s;

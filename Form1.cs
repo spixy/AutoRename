@@ -10,6 +10,21 @@ namespace QRename
 {
     public partial class Form1 : Form
     {
+        private Updater _updater = null;
+        private Updater updater
+        {
+            get
+            {
+                if (_updater == null)
+                {
+                    _updater = new Updater(Resources.UpdateFile);
+                    _updater.UpdateAvailableAction = UpdateFound;
+                }
+
+                return _updater;
+            }
+        }
+
         private bool Overwrite
         {
             get { return overwriteExistingFilesToolStripMenuItem.Checked; }
@@ -62,9 +77,10 @@ namespace QRename
                         continue;
                 }
 
-                if (Directory.Exists(argv[i]) || File.Exists(argv[i]))
+                if (Utility.ItemExists(argv[i]))
                 {
-                    dataGridView1.AddLine(ShowExtension, ShowFullPath, argv[i], FileNameProcessor.QRename(argv[i], StartWithUpperCase));
+                    string newLine = FileNameProcessor.QRename(argv[i], StartWithUpperCase);
+                    dataGridView1.AddLine(ShowExtension, ShowFullPath, argv[i], newLine);
                 }
             }
         }
@@ -97,7 +113,7 @@ namespace QRename
                 to = to_parent + "\\" + to_name + new FileInfo(from).Extension;
             }
 
-            if (File.Exists(from) || Directory.Exists(from))
+            if (Utility.ItemExists(from))
             {
                 try
                 {
@@ -282,7 +298,10 @@ namespace QRename
             string[] files = (string[]) e.Data.GetData(DataFormats.FileDrop);
 
             foreach (string file in files)
-                dataGridView1.AddLine(ShowExtension, ShowFullPath, file, FileNameProcessor.QRename(file, StartWithUpperCase));
+            {
+                string newLine = FileNameProcessor.QRename(file, StartWithUpperCase);
+                dataGridView1.AddLine(ShowExtension, ShowFullPath, file, newLine);
+            }
         }
 
         private void Form1_DragEnter(object sender, DragEventArgs e)
@@ -330,48 +349,28 @@ namespace QRename
 
         private void fileExtensionToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            dataGridView1.Enabled = false;
-
-            for (int i = 0; i < dataGridView1.RowCount; i++)
-            {
-                string input = (string)dataGridView1.Rows[i].Cells[0].Tag;
-                string output = FileNameProcessor.QRename(input, StartWithUpperCase);
-
-                dataGridView1.EditExtension(ShowExtension, ShowFullPath, input, output, i);
-            }
-
-            dataGridView1.Enabled = true;
+            dataGridView1.EditExtension(ShowExtension);
         }
 
         private void fullPathToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            dataGridView1.Enabled = false;
-
-            for (int i = 0; i < dataGridView1.RowCount; i++)
-            {
-                string input = (string)dataGridView1.Rows[i].Cells[0].Tag;
-                string output = FileNameProcessor.QRename(input, StartWithUpperCase);
-
-                dataGridView1.EditFullPath(ShowExtension, ShowFullPath, input, output, i);
-            }
-
-            dataGridView1.Enabled = true;
+            dataGridView1.EditFullPath(ShowFullPath);
         }
 
         private void checkForUpdateToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Updater updater = new Updater(Resources.UpdateFile);
-
-            if (updater.IsUpdateAvailable() &&
-                MessageBox.Show("Update Available. Download new version?", "Update Available", MessageBoxButtons.YesNo) == DialogResult.Yes)
-            {
-                Process.Start(Resources.HomePage);
-            }
+            updater.IsUpdateAvailableAsync();
         }
 
         private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Process.Start(Resources.HomePage);
+        }
+
+        private void UpdateFound()
+        {
+            if (MessageBox.Show("Update Available. Download new version?", "Update Available", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                Process.Start(Resources.HomePage);
         }
   
     }

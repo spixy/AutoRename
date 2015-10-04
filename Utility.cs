@@ -10,35 +10,35 @@ namespace QRename
         /// <summary>
         /// Add grid row
         /// </summary>
-        public static void AddLine(this DataGridView dataGridView, bool extension, bool fullpath, string oldline, string newline)
+        public static void AddLine(this DataGridView dataGridView, bool extension, bool fullPath, string oldLine, string newLine)
         {
             dataGridView.Rows.Add(new DataGridViewRow());
 
             int index = dataGridView.Rows.Count - 1;
-            string input = oldline;
-            string output = newline;
-            DirectoryInfo inputDI = new DirectoryInfo(oldline);
-            DirectoryInfo outputDI = new DirectoryInfo(newline);
+            string input = oldLine;
+            string output = newLine;
+            DirectoryInfo inputDI = new DirectoryInfo(oldLine);
+            DirectoryInfo outputDI = new DirectoryInfo(newLine);
 
-            if (!fullpath)
+            if (!fullPath)
             {
                 input = inputDI.Name;
                 output = outputDI.Name;
             }
 
-            if (!extension && File.Exists(oldline) && inputDI.Extension != "")
+            if (!extension && File.Exists(oldLine) && inputDI.Extension != "")
             {
                 int ext_length = inputDI.Extension.Length;
 
-                int ext_index = input.LastIndexOf(inputDI.Extension);
-                input = input.Remove(ext_index, ext_length);
+                int input_ext_index = input.LastIndexOf(inputDI.Extension);
+                input = input.Remove(input_ext_index, ext_length);
 
-                ext_index = output.LastIndexOf(outputDI.Extension);
-                output = output.Remove(ext_index, ext_length);
+                int output_ext_index = output.LastIndexOf(outputDI.Extension);
+                output = output.Remove(output_ext_index, ext_length);
             }
 
             dataGridView.Rows[index].Cells[0].Value = input;
-            dataGridView.Rows[index].Cells[0].Tag = oldline;
+            dataGridView.Rows[index].Cells[0].Tag = oldLine;
 
             dataGridView.Rows[index].Cells[1].Value = output;
             dataGridView.Rows[index].Cells[1].Tag = inputDI.Parent.FullName;
@@ -47,25 +47,44 @@ namespace QRename
         /// <summary>
         /// Toggle extension show/hide
         /// </summary>
-        public static void EditExtension(this DataGridView dataGridView, bool extension, bool fullpath, string oldline, string newline, int index)
+        public static void EditExtension(this DataGridView dataGridView, bool extension)
         {
-            string input = (string) dataGridView.Rows[index].Cells[0].Value;
+            dataGridView.Enabled = false;
+
+            for (int i = 0; i < dataGridView.RowCount; i++)
+            {
+                dataGridView.EditExtension(extension, i);
+            }
+
+            dataGridView.Enabled = true;
+        }
+
+        /// <summary>
+        /// Toggle extension show/hide
+        /// </summary>
+        private static void EditExtension(this DataGridView dataGridView, bool extension, int index)
+        {
+            string oldFileName = (string)dataGridView.Rows[index].Cells[0].Tag;
+
+            FileInfo fsi = new FileInfo(oldFileName);
+
+            if (!fsi.Exists || string.IsNullOrEmpty(fsi.Extension))
+                return;
+
+            string input  = (string)dataGridView.Rows[index].Cells[0].Value;
             string output = (string)dataGridView.Rows[index].Cells[1].Value;
 
-            DirectoryInfo fsi = new DirectoryInfo(oldline);
-
-            if (!File.Exists(oldline) || fsi.Extension == "")
-                return;
+            string fileExtension = fsi.Extension;
 
             if (extension)
             {
-                input += fsi.Extension;
-                output += fsi.Extension;
+                input += fileExtension;
+                output += fileExtension;
             }
             else
             {
-                input = output.Replace(fsi.Extension, "");
-                output = output.Replace(fsi.Extension, "");
+                input = input.Replace(fileExtension, "");
+                output = output.Replace(fileExtension, "");
             }
 
             dataGridView.Rows[index].Cells[0].Value = input;
@@ -73,24 +92,39 @@ namespace QRename
         }
 
         /// <summary>
+        /// Toggle extension show/hide
+        /// </summary>
+        public static void EditFullPath(this DataGridView dataGridView, bool fullPath)
+        {
+            dataGridView.Enabled = false;
+
+            for (int i = 0; i < dataGridView.RowCount; i++)
+            {
+                dataGridView.EditFullPath(fullPath, i);
+            }
+
+            dataGridView.Enabled = true;
+        }
+
+        /// <summary>
         /// Toggle full path show/hide
         /// </summary>
-        public static void EditFullPath(this DataGridView dataGridView, bool extension, bool fullpath, string oldline, string newline, int index)
+        private static void EditFullPath(this DataGridView dataGridView, bool fullPath, int index)
         {
-            string input = (string)dataGridView.Rows[index].Cells[0].Value;
+            string directory = (string)dataGridView.Rows[index].Cells[1].Tag + "\\";
+
+            string input =  (string)dataGridView.Rows[index].Cells[0].Value;
             string output = (string)dataGridView.Rows[index].Cells[1].Value;
 
-            string dir = (string) dataGridView.Rows[index].Cells[1].Tag + "\\";
-
-            if (fullpath)
+            if (fullPath)
             {
-                input = dir + input;
-                output = dir + output;
+                input = directory + input;
+                output = directory + output;
             }
             else
             {
-                input = input.Replace(dir, "");
-                output = output.Replace(dir, "");
+                input = input.Replace(directory, "");
+                output = output.Replace(directory, "");
             }
 
             dataGridView.Rows[index].Cells[0].Value = input;
@@ -129,11 +163,11 @@ namespace QRename
         /// <summary>
         /// Check if array contains string
         /// </summary>
-        public static bool IsStringInArray(string[] strArray, string key, bool caseSensitive)
+        public static bool IsStringInArray(this string[] strArray, string key, bool caseSensitive)
         {
             if (caseSensitive)
             {
-                for (int i = 0; i <= strArray.Length - 1; i++)
+                for (int i = 0; i < strArray.Length; i++)
                 {
                     if (strArray[i] == key)
                         return true;
@@ -141,7 +175,7 @@ namespace QRename
             }
             else
             {
-                for (int i = 0; i <= strArray.Length - 1; i++)
+                for (int i = 0; i < strArray.Length; i++)
                 {
                     if (string.Equals(strArray[i], key, StringComparison.CurrentCultureIgnoreCase))
                         return true;
@@ -153,7 +187,7 @@ namespace QRename
         /// <summary>
         /// Replace char in string at index
         /// </summary>
-        public static string ReplaceChar(string source, int index, char replacement)
+        public static string ReplaceChar(this string source, int index, char replacement)
         {
             char[] temp = source.ToCharArray();
             temp[index] = replacement;
@@ -174,6 +208,15 @@ namespace QRename
             }
 
             return list.ToArray();
+        }
+
+        /// <summary>
+        /// Determines whether the specified file or directory exists
+        /// </summary>
+        /// <param name="path">The path to check</param>
+        public static bool ItemExists(string path)
+        {
+            return File.Exists(path) || Directory.Exists(path);
         }
     }
 }
