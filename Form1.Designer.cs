@@ -113,20 +113,20 @@
             this.clearSelectedToolStripMenuItem,
             this.clearAllToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(176, 80);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(175, 52);
             // 
             // clearSelectedToolStripMenuItem
             // 
             this.clearSelectedToolStripMenuItem.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
             this.clearSelectedToolStripMenuItem.Name = "clearSelectedToolStripMenuItem";
-            this.clearSelectedToolStripMenuItem.Size = new System.Drawing.Size(175, 24);
+            this.clearSelectedToolStripMenuItem.Size = new System.Drawing.Size(174, 24);
             this.clearSelectedToolStripMenuItem.Text = "Clear selected";
             this.clearSelectedToolStripMenuItem.Click += new System.EventHandler(this.clearSelectedToolStripMenuItem_Click);
             // 
             // clearAllToolStripMenuItem
             // 
             this.clearAllToolStripMenuItem.Name = "clearAllToolStripMenuItem";
-            this.clearAllToolStripMenuItem.Size = new System.Drawing.Size(175, 24);
+            this.clearAllToolStripMenuItem.Size = new System.Drawing.Size(174, 24);
             this.clearAllToolStripMenuItem.Text = "Clear all";
             this.clearAllToolStripMenuItem.Click += new System.EventHandler(this.clearAllToolStripMenuItem_Click);
             // 
@@ -190,14 +190,18 @@
             // 
             // overwriteExistingFilesToolStripMenuItem
             // 
+            this.overwriteExistingFilesToolStripMenuItem.Checked = true;
             this.overwriteExistingFilesToolStripMenuItem.CheckOnClick = true;
+            this.overwriteExistingFilesToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.overwriteExistingFilesToolStripMenuItem.Name = "overwriteExistingFilesToolStripMenuItem";
             this.overwriteExistingFilesToolStripMenuItem.Size = new System.Drawing.Size(262, 24);
             this.overwriteExistingFilesToolStripMenuItem.Text = "&Overwrite existing files";
             // 
             // wordsWithUpperCaseToolStripMenuItem
             // 
+            this.wordsWithUpperCaseToolStripMenuItem.Checked = true;
             this.wordsWithUpperCaseToolStripMenuItem.CheckOnClick = true;
+            this.wordsWithUpperCaseToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.wordsWithUpperCaseToolStripMenuItem.Name = "wordsWithUpperCaseToolStripMenuItem";
             this.wordsWithUpperCaseToolStripMenuItem.Size = new System.Drawing.Size(262, 24);
             this.wordsWithUpperCaseToolStripMenuItem.Text = "&Words start with upper case";

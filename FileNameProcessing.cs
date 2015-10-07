@@ -18,7 +18,7 @@ namespace QRename
 
             foreach (var word in words)
             {
-                result += char.ToUpperInvariant(word[0]) + word.Substring(1) + ' ';
+                result += char.ToUpperInvariant(word[0]) + word.Substring(1).ToLowerInvariant() + ' ';
             }
 
             result = result.Substring(0, result.Length - 1);
