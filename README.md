@@ -2,7 +2,7 @@
 Automatically changes file names to human-friendly names
 
 ### Download
-[v1.8.1 (rar)](https://github.com/spixy/QuickRename/releases/download/1.8.1/QRename.rar)
+[v1.8.2 (rar)](https://github.com/spixy/QuickRename/releases/download/1.8.2/QRename.rar)
 
 ### Screenshots
 ![image 1](https://cloud.githubusercontent.com/assets/4542110/8968480/cead3882-363d-11e5-81bb-ab561586b088.jpg)
