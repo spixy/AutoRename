@@ -141,12 +141,12 @@ namespace QRename
 
             bool success = true;
 
-            for (int i = 0; i < dataGridView1.RowCount; i++)
+            foreach (DataGridViewRow row in dataGridView1.Rows)
             {
-                bool result = Rename(dataGridView1.Rows[i]);
+                bool result = Rename(row);
 
                 if (!result)
-                    dataGridView1.Rows[i].DefaultCellStyle.BackColor = Color.Red;
+                    row.DefaultCellStyle.BackColor = Color.Red;
 
                 success &= result;
             }
@@ -193,10 +193,10 @@ namespace QRename
                             ShowExtension = val;
                     }
 
-                    if (line.Contains("full path  "))
+                    if (line.Contains("full path "))
                     {
                         bool val;
-                        if (bool.TryParse(line.Replace("full path  ", ""), out val))
+                        if (bool.TryParse(line.Replace("full path ", ""), out val))
                             ShowFullPath = val;
                     }
 
@@ -212,6 +212,11 @@ namespace QRename
                         int val;
                         if (int.TryParse(line.Substring(6), out val))
                             dataGridView1.Columns[0].Width = val;
+                    }
+
+                    if (line.Contains("UpperCaseExceptions ") && line.Length > 20)
+                    {
+                        FileNameProcessor.UpperCaseExceptions = line.Substring(20).Split('|');
                     }
                 }
             }
@@ -280,6 +285,7 @@ namespace QRename
                     sw.WriteLine("full path " + ShowFullPath);            
                     sw.WriteLine("window " + Width + "x" + Height);
                     sw.WriteLine("delim " + dataGridView1.Columns[0].Width);
+                    sw.WriteLine("UpperCaseExceptions " + string.Join("|", FileNameProcessor.UpperCaseExceptions));
                 }
             }
             catch

@@ -165,22 +165,14 @@ namespace QRename
         /// </summary>
         public static bool IsStringInArray(this string[] strArray, string key, bool caseSensitive)
         {
-            if (caseSensitive)
+            StringComparison comparison = (caseSensitive) ? StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase;
+
+            foreach (string str in strArray)
             {
-                for (int i = 0; i < strArray.Length; i++)
-                {
-                    if (strArray[i] == key)
-                        return true;
-                }
+                if (string.Equals(str, key, comparison))
+                    return true;
             }
-            else
-            {
-                for (int i = 0; i < strArray.Length; i++)
-                {
-                    if (string.Equals(strArray[i], key, StringComparison.CurrentCultureIgnoreCase))
-                        return true;
-                }
-            }
+
             return false;
         }
 

@@ -4,6 +4,8 @@ namespace QRename
 {
     static class FileNameProcessor
     {
+        public static string[] UpperCaseExceptions = { "HD", "HQ", "SD" };
+
         /// <summary>
         /// Make each word to start with upper case
         /// </summary>
@@ -18,12 +20,16 @@ namespace QRename
 
             foreach (var word in words)
             {
-                result += char.ToUpperInvariant(word[0]) + word.Substring(1).ToLowerInvariant() + ' ';
+                if (word.Length > 0)
+                {
+                    if (UpperCaseExceptions.IsStringInArray(word, true))
+                        result += word + ' ';
+                    else
+                        result += char.ToUpperInvariant(word[0]) + word.Substring(1).ToLowerInvariant() + ' ';
+                }
             }
 
-            result = result.Substring(0, result.Length - 1);
-
-            return result;
+            return result.Substring(0, result.Length - 1);
         }
 
         /// <summary>
@@ -36,7 +42,8 @@ namespace QRename
 
             FileInfo fi = new FileInfo(file);
             string directory = fi.DirectoryName;
-            file = fi.Name;
+
+            file = Path.GetFileNameWithoutExtension(file);
 
             char separator = FindSeparator(file);
 
@@ -73,9 +80,9 @@ namespace QRename
                 newStr = ChangeToUpperCase(newStr);
             }
 
-            newStr = new FileInfo(directory + "\\" + newStr).FullName;
+            newStr = PostProcess(newStr);
 
-            return PostProcess(newStr);
+            return new FileInfo(directory + "\\" + newStr + fi.Extension).FullName;
         }
 
         private static string ProcessHyphen(string file)
