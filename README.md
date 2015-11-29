@@ -1,5 +1,7 @@
 # QuickRename
 Automatically changes file names to human-friendly names
+ * Removes unnecessary characters
+ * Words start with upper case
 
 ### Download
 [v2.0 (rar)](https://github.com/spixy/QuickRename/releases/download/2.0/QRename.rar)
