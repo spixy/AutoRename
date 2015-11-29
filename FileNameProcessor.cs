@@ -1,15 +1,26 @@
 ﻿using System.IO;
 
-namespace QRename
+namespace QuickRename
 {
-    static class FileNameProcessor
+    public class FileNameProcessor
     {
-        public static string[] UpperCaseExceptions = { "HD", "HQ", "SD" };
+        public string[] UpperCaseExceptions = { "HD", "HQ", "SD" };
+
+        private MainViewModel model;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="viewModel"></param>
+        public FileNameProcessor(MainViewModel viewModel)
+        {
+            model = viewModel;
+        }
 
         /// <summary>
         /// Make each word to start with upper case
         /// </summary>
-        public static string ChangeToUpperCase(string text)
+        private string ChangeToUpperCase(string text)
         {
             if (string.IsNullOrEmpty(text))
                 return string.Empty;
@@ -33,9 +44,34 @@ namespace QRename
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        public string ApplyRules(string file)
+        {
+            if (model.ShowFullPath && model.ShowExtension)
+            {
+                return file;
+            }
+            else if (model.ShowFullPath)
+            {
+                return Path.GetDirectoryName(file) + Path.DirectorySeparatorChar + Path.GetFileNameWithoutExtension(file);
+            }
+            else if (model.ShowExtension)
+            {
+                return Path.GetFileName(file);
+            }
+            else
+            {
+               return Path.GetFileNameWithoutExtension(file);
+            }
+        }
+
+        /// <summary>
         /// Get new file name
         /// </summary>
-        public static string QRename(string file, bool upperCase)
+        public string QRename(string file)
         {
             string newStr;
             bool isDirectory = Directory.Exists(file);
@@ -75,7 +111,7 @@ namespace QRename
                     break;
             }
 
-            if (upperCase)
+            if (model.StartWithUpperCase)
             {
                 newStr = ChangeToUpperCase(newStr);
             }
@@ -85,7 +121,7 @@ namespace QRename
             return new FileInfo(directory + "\\" + newStr + fi.Extension).FullName;
         }
 
-        private static string ProcessHyphen(string file)
+        private string ProcessHyphen(string file)
         {
             string newStr = string.Empty;
 
@@ -106,7 +142,7 @@ namespace QRename
             return newStr;
         }
 
-        private static string ProcessDefault(string file, char separator)
+        private string ProcessDefault(string file, char separator)
         {
             string newStr = file.Replace(separator, ' ');
 
@@ -124,7 +160,7 @@ namespace QRename
             return newStr;
         }
 
-        private static char FindSeparator(string str)
+        private char FindSeparator(string str)
         {
             int hyphens = 0;
             int dots = 0;
@@ -161,7 +197,7 @@ namespace QRename
             return separators[index];
         }
 
-        private static string PostProcess(string file)
+        private string PostProcess(string file)
         {
             string newFile = string.Empty;
 

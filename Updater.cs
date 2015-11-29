@@ -1,9 +1,8 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Net;
-using System.Windows.Forms;
 
-namespace QRename
+namespace QuickRename
 {
     public class Updater
     {
@@ -67,7 +66,7 @@ namespace QRename
                     LatestVersion = update.DownloadString(UpdateFile);
                 }
 
-                return (LatestVersion != Application.ProductVersion);
+                return (LatestVersion != Utility.AppVersion.ToString());
             }
             catch
             {
