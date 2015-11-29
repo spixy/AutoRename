@@ -5,5 +5,4 @@ Automatically changes file names to human-friendly names
 [v2.0 (rar)](https://github.com/spixy/QuickRename/releases/download/2.0/QRename.rar)
 
 ### Screenshots
-![image 1](https://cloud.githubusercontent.com/assets/4542110/8968480/cead3882-363d-11e5-81bb-ab561586b088.jpg)
-![image 2](https://cloud.githubusercontent.com/assets/4542110/8968487/da591700-363d-11e5-85b7-daf37bcab53e.jpg)
+![image](https://cloud.githubusercontent.com/assets/4542110/11457848/e5543eb0-96b3-11e5-87f6-c8d7d864462c.png)
