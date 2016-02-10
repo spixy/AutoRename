@@ -1,4 +1,4 @@
-# QuickRename
+# AutoRename
 Automatically changes file names to human-friendly names
  * Removes unnecessary characters
  * Words start with upper case
