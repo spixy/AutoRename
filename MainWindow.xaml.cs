@@ -41,7 +41,10 @@ namespace AutoRename
 	            string arg = argv[i];
 
 	            switch (arg.ToLower())
-                {
+				{
+					case "-b":
+						model.RemoveBrackets = true;
+						continue;
                     case "-s":
                         model.StartWithUpperCase = true;
                         continue;
@@ -70,7 +73,14 @@ namespace AutoRename
                 string[] lines = File.ReadAllLines(Properties.Resources.ConfigFile);
 
                 foreach (string line in lines)
-                {
+				{
+					if (line.Contains("overwrite "))
+					{
+						bool val;
+						if (bool.TryParse(line.Replace("overwrite ", ""), out val))
+							fileNameProcessor.ForceOverwrite = val;
+					}
+
                     if (line.Contains("uppercase "))
                     {
                         bool val;
@@ -118,10 +128,11 @@ namespace AutoRename
             try
             {
                 using (StreamWriter sw = new StreamWriter(Properties.Resources.ConfigFile, false))
-                {
-                    sw.WriteLine("uppercase " + fileNameProcessor.StartWithUpperCase);
-                    sw.WriteLine("extension " + model.ShowExtension);
-                    sw.WriteLine("full path " + model.ShowFullPath);
+				{
+					sw.WriteLine("overwrite " + fileNameProcessor.ForceOverwrite);
+					sw.WriteLine("uppercase " + fileNameProcessor.StartWithUpperCase);
+                    sw.WriteLine("extension " + fileNameProcessor.ShowExtension);
+					sw.WriteLine("full path " + fileNameProcessor.ShowFullPath);
                     sw.WriteLine("window " + Width + "x" + Height);
                     sw.WriteLine("UpperCaseExceptions " + string.Join("|", fileNameProcessor.UpperCaseExceptions));
                 }
