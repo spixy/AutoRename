@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using System.Net;
 
-namespace QuickRename
+namespace AutoRename
 {
     public class Updater
     {
@@ -66,7 +66,7 @@ namespace QuickRename
                     LatestVersion = update.DownloadString(UpdateFile);
                 }
 
-                return (LatestVersion != Utility.AppVersion.ToString());
+                return (LatestVersion != Utility.CurrentApplication.Version.ToString());
             }
             catch
             {

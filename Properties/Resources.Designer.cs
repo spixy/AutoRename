@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace QuickRename.Properties {
+namespace AutoRename.Properties {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace QuickRename.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("QuickRename.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("AutoRename.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -70,7 +70,7 @@ namespace QuickRename.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://github.com/spixy/QuickRename.
+        ///   Looks up a localized string similar to https://github.com/spixy/AutoRename.
         /// </summary>
         internal static string HomePage {
             get {
@@ -79,11 +79,29 @@ namespace QuickRename.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://raw.githubusercontent.com/spixy/QuickRename/master/lastversion.
+        ///   Looks up a localized string similar to https://raw.githubusercontent.com/spixy/AutoRename/master/lastversion.
         /// </summary>
         internal static string UpdateFile {
             get {
                 return ResourceManager.GetString("UpdateFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Update to\r\nnew version.
+        /// </summary>
+        internal static string WebsiteButtonUpdate {
+            get {
+                return ResourceManager.GetString("WebsiteButtonUpdate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Visit\r\nwebsite.
+        /// </summary>
+        internal static string WebsiteButtonVisit {
+            get {
+                return ResourceManager.GetString("WebsiteButtonVisit", resourceCulture);
             }
         }
     }

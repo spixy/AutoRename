@@ -1,43 +1,34 @@
-﻿using Microsoft.Win32;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
+﻿using System;
 using System.IO;
-using System.Media;
 using System.Windows;
 
-namespace QuickRename
+namespace AutoRename
 {
     /// <summary>
     /// Main Window
     /// </summary>
     public partial class MainWindow : Window
     {
-        private const string websiteButtonVisit = "Visit\r\nwebsite";
-        private const string websiteButtonUpdate = "Update to\r\nnew version";
+        #region Properties
 
-        private MainViewModel model;
-        private FileNameProcessor fileNameProcessor;
+		private bool renameAutomatically = false;
 
-        private Lazy<OpenFileDialog> openFileDialog = new Lazy<OpenFileDialog>(() =>
-        {
-            var _openFileDialog = new OpenFileDialog();
-            _openFileDialog.Multiselect = true;
-            return _openFileDialog;
-         });
+        private readonly MainViewModel model;
+
+	    private readonly FileNameProcessor fileNameProcessor;
+
+        #endregion
+
+        #region Start and Exit
 
         public MainWindow()
         {
             InitializeComponent();
 
-            model = new MainViewModel();
-            model.PropertyChanged += PropertyChanged;
-            model.WebsiteButton = websiteButtonVisit;
+			fileNameProcessor = new FileNameProcessor();
+			model = new MainViewModel(fileNameProcessor);
 
-            fileNameProcessor = new FileNameProcessor(model);
-
-            // bind to UI
+	        // bind to UI
             DataContext = model;
         }
 
@@ -47,41 +38,39 @@ namespace QuickRename
 
             for (int i = 1; i < argv.Length; i++)
             {
-                switch (argv[i].ToLower())
+	            string arg = argv[i];
+
+	            switch (arg.ToLower())
                 {
                     case "-s":
                         model.StartWithUpperCase = true;
                         continue;
                     case "-f":
-                        model.Overwrite = true;
+						fileNameProcessor.ForceOverwrite = true;
+                        continue;
+                    case "-y":
+                        renameAutomatically = true;
                         continue;
                 }
 
-                if (Utility.ItemExists(argv[i]))
+                if (Utility.ItemExists(arg))
                 {
-                    AddRow(argv[i]);
+					model.AddFile(arg);
                 }
             }
         }
 
         private void LoadSettings()
         {
-            if (!File.Exists(QuickRename.Properties.Resources.ConfigFile))
+            if (!File.Exists(Properties.Resources.ConfigFile))
                 return;
 
             try
             {
-                string[] lines = File.ReadAllLines(QuickRename.Properties.Resources.ConfigFile);
+                string[] lines = File.ReadAllLines(Properties.Resources.ConfigFile);
 
                 foreach (string line in lines)
                 {
-                    if (line.Contains("overwrite "))
-                    {
-                        bool val;
-                        if (bool.TryParse(line.Replace("overwrite ", ""), out val))
-                            model.Overwrite = val;
-                    }
-
                     if (line.Contains("uppercase "))
                     {
                         bool val;
@@ -105,14 +94,16 @@ namespace QuickRename
 
                     if (line.Contains("window ") && line.Length > 9)
                     {
-                        string res = line.Substring(7);
-                        Width = Convert.ToInt32(res.Substring(0, res.IndexOf('x')));
-                        Height = Convert.ToInt32(res.Substring(res.IndexOf('x') + 1));
+                        string res = line.Replace("window ", "");
+                        int delim = res.IndexOf('x');
+
+                        Width = Convert.ToInt32(res.Substring(0, delim));
+                        Height = Convert.ToInt32(res.Substring(delim + 1));
                     }
 
                     if (line.Contains("UpperCaseExceptions ") && line.Length > 20)
                     {
-                        fileNameProcessor.UpperCaseExceptions = line.Substring(20).Split('|');
+                        fileNameProcessor.UpperCaseExceptions = line.Replace("UpperCaseExceptions ","").Split('|');
                     }
                 }
             }
@@ -126,10 +117,9 @@ namespace QuickRename
         {
             try
             {
-                using (StreamWriter sw = new StreamWriter(QuickRename.Properties.Resources.ConfigFile, false))
+                using (StreamWriter sw = new StreamWriter(Properties.Resources.ConfigFile, false))
                 {
-                    sw.WriteLine("overwrite " + model.Overwrite);
-                    sw.WriteLine("uppercase " + model.StartWithUpperCase);
+                    sw.WriteLine("uppercase " + fileNameProcessor.StartWithUpperCase);
                     sw.WriteLine("extension " + model.ShowExtension);
                     sw.WriteLine("full path " + model.ShowFullPath);
                     sw.WriteLine("window " + Width + "x" + Height);
@@ -142,183 +132,32 @@ namespace QuickRename
             }
         }
 
-        private void PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            switch (e.PropertyName)
-            {
-                case "ShowExtension":
-                    ApplyRules();
-                    break;
+        #endregion
 
-                case "ShowFullPath":
-                    ApplyRules();
-                    break;
-
-                case "StartWithUpperCase":
-                    ChangeToUpperCase();
-                    break;
-
-                case "NewViewPath":
-                    FileNameChanged((GridRowViewModel)sender);
-                    break;
-            }
-        }
-
-        private void FileNameChanged(GridRowViewModel row)
-        {
-            if (model.ShowExtension)
-            {
-                row.NewFullPath = Path.GetDirectoryName(row.NewFullPath) + Path.DirectorySeparatorChar + row.NewViewPath;
-            }
-            else
-            {
-                row.NewFullPath = Path.GetDirectoryName(row.NewFullPath) + Path.DirectorySeparatorChar
-                                + Path.GetFileNameWithoutExtension(row.NewViewPath) + Path.GetExtension(row.NewFullPath);
-            }
-        }
-
-        private void ApplyRules()
-        {
-            var list = model.DataGridRowsList;
-            foreach (var item in list)
-            {
-                item.OldViewPath = fileNameProcessor.ApplyRules(item.OldFullPath);
-                item.NewViewPath = fileNameProcessor.ApplyRules(item.NewFullPath);
-            }
-        }
-
-        private void ChangeToUpperCase()
-        {
-            var list = model.DataGridRowsList;
-            foreach (var item in list)
-            {
-                item.NewFullPath = fileNameProcessor.QRename(item.OldFullPath);
-                item.NewViewPath = fileNameProcessor.ApplyRules(item.NewFullPath);
-            }
-        }
+        #region Events
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             LoadSettings();
             LoadArgv();
 
-            Updater updater = new Updater(QuickRename.Properties.Resources.UpdateFile);
-            updater.UpdateAvailableAction = () => model.WebsiteButton = websiteButtonUpdate;
-            updater.IsUpdateAvailableAsync();
+            if (renameAutomatically)
+            {
+				model.RenameAll();
+            }
+            else
+            {
+	            Updater updater = new Updater(Properties.Resources.UpdateFile)
+	            {
+					UpdateAvailableAction = () => model.WebsiteButton = Properties.Resources.WebsiteButtonUpdate
+	            };
+	            updater.IsUpdateAvailableAsync();
+            }
         }
 
         private void Window_Closed(object sender, EventArgs e)
         {
             SaveSettings();
-        }
-
-        private void ButtonAddFile_Click(object sender, RoutedEventArgs e)
-        {
-            if (openFileDialog.Value.ShowDialog(this).Value)
-            {
-                foreach (string file in openFileDialog.Value.FileNames)
-                {
-                    AddRow(file);
-                }
-            }
-        }
-
-        private void ButtonWebsite_Click(object sender, RoutedEventArgs e)
-        {
-            Process.Start(QuickRename.Properties.Resources.HomePage);
-        }
-
-        private void ButtonRename_Click(object sender, RoutedEventArgs e)
-        {
-            var list = model.DataGridRowsList;
-
-            if (list.Count == 0)
-                return;
-
-            bool success = true;
-
-            var newList = new List<GridRowViewModel>();
-
-            foreach (GridRowViewModel row in list)
-            {
-                bool result = Rename(row);
-
-                if (!result)
-                {
-                    row.Error = true;
-                    newList.Add(row);
-                }
-
-                success &= result;
-            }
-
-            if (success)
-            {
-                Application.Current.Shutdown();
-            }
-            else
-            {
-                SystemSounds.Beep.Play();
-
-                // refresh UI
-                model.DataGridRowsList = newList;
-            }
-        }
-
-        private void AddRow(string file)
-        {
-            GridRowViewModel newRow = new GridRowViewModel();
-            newRow.PropertyChanged += PropertyChanged;
-
-            newRow.OldFullPath = file;
-            newRow.OldViewPath = fileNameProcessor.ApplyRules(newRow.OldFullPath);
-
-            newRow.NewFullPath = fileNameProcessor.QRename(file);
-            newRow.NewViewPath = fileNameProcessor.ApplyRules(newRow.NewFullPath);
-
-            var list = model.DataGridRowsList;
-
-            if (!ContainsOldFullPath(list, newRow))
-            {
-                list.Add(newRow);
-                model.DataGridRowsList = list;
-            }
-        }
-
-        private bool ContainsOldFullPath(List<GridRowViewModel> list, GridRowViewModel newItem)
-        {
-            foreach (GridRowViewModel item in list)
-            {
-                if (item.OldFullPath == newItem.OldFullPath)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private bool Rename(GridRowViewModel row)
-        {
-            if (!model.Overwrite && File.Exists(row.NewFullPath))
-                return false;
-
-            if (Utility.ItemExists(row.OldFullPath))
-            {
-                try
-                {
-                    Directory.Move(row.OldFullPath, row.NewFullPath);
-                    return true;
-                }
-                catch
-                {
-                    return false;
-                }
-            }
-            else
-            {
-                return false;
-            }
         }
 
         private void Window_DragEnter(object sender, DragEventArgs e)
@@ -333,27 +172,20 @@ namespace QuickRename
 
             if (files != null)
             {
-                foreach (string file in files)
-                    AddRow(file);
+                model.AddFiles(files);
             }
         }
 
         private void ClearAll_Click(object sender, RoutedEventArgs e)
         {
-            model.DataGridRowsList = null;
+            model.RemoveAll();
         }
 
-        private void Clear_Click(object sender, RoutedEventArgs e)
-        {
-            GridRowViewModel curent = model.SelectedItem;
+	    private void Clear_Click(object sender, RoutedEventArgs e)
+	    {
+		    model.RemoveSelected();
+	    }
 
-            var list = model.DataGridRowsList;
-
-            if (list != null)
-            {
-                list.Remove(curent);
-                model.DataGridRowsList = list;
-            }
-        }
+	    #endregion
     }
 }

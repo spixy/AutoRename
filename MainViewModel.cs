@@ -1,8 +1,11 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Windows.Data;
+using System.Media;
+using System.Windows;
+using System.Windows.Input;
 
-namespace QuickRename
+namespace AutoRename
 {
     /// <summary>
     /// Main GUI
@@ -19,34 +22,32 @@ namespace QuickRename
             }
         }
 
-        /// <summary>
-        /// DataGrid Source
-        /// </summary>
-        public ICollectionView DataGridRows { get; set; }
+	    public MainViewModel(FileNameProcessor fileNameProcessor)
+	    {
+		    FileNameProcessor = fileNameProcessor;
+	    }
 
-        /// <summary>
-        /// DataGrid Source as List
-        /// </summary>
-        public List<GridRowViewModel> DataGridRowsList
-        {
-            get
-            {
-                List<GridRowViewModel> list = new List<GridRowViewModel>();
+	    /// <summary>
+		/// File Name Processor
+		/// </summary>
+		public FileNameProcessor FileNameProcessor { get; private set; }
 
-                if (DataGridRows != null)
-                {
-                    foreach (GridRowViewModel row in DataGridRows.SourceCollection)
-                        list.Add(row);
-                }
-
-                return list;
-            }
-            set
-            {
-                DataGridRows = CollectionViewSource.GetDefaultView(value);
-                OnPropertyChanged("DataGridRows");
-            }
-        }
+	    /// <summary>
+	    /// DataGrid Rows
+	    /// </summary>
+	    private ObservableCollection<GridRowViewModel> _DataGridRows = new ObservableCollection<GridRowViewModel>();
+	    public ObservableCollection<GridRowViewModel> DataGridRows
+	    {
+		    get
+		    {
+			    return _DataGridRows;
+		    }
+		    set
+		    {
+			    _DataGridRows = value;
+				OnPropertyChanged("DataGridRows");
+		    }
+	    }
 
         /// <summary>
         /// Window title
@@ -55,14 +56,47 @@ namespace QuickRename
         {
             get
             {
-                return "Quick Rename " + Utility.AppVersion.Major + "." + Utility.AppVersion.Minor + "." + Utility.AppVersion.Revision;
+	            var name = Utility.CurrentApplication.Name;
+	            var version = Utility.CurrentApplication.Version;
+
+				return name + " " + version.Major + "." + version.Minor + (version.Build > 0 ? "." + version.Build : "");
             }
         }
 
-        /// <summary>
-        /// Website button caption
-        /// </summary>
-        public string WebsiteButton { get; set; }
+		private void ApplyVisualRules()
+		{
+			foreach (var item in DataGridRows)
+			{
+				item.OldViewPath = FileNameProcessor.ApplyVisualRules(item.OldFullPath);
+				item.NewViewPath = FileNameProcessor.ApplyVisualRules(item.NewFullPath);
+			}
+		}
+
+		private void ApplyNamingRules()
+		{
+			foreach (var item in DataGridRows)
+			{
+				item.NewFullPath = FileNameProcessor.QRename(item.OldFullPath);
+				item.NewViewPath = FileNameProcessor.ApplyVisualRules(item.NewFullPath);
+			}
+		}
+
+	    /// <summary>
+	    /// Website button caption
+	    /// </summary>
+	    private string _WebsiteButton = Properties.Resources.WebsiteButtonVisit;
+		public string WebsiteButton
+		{
+			get
+			{
+				return _WebsiteButton;
+			}
+			set
+			{
+				_WebsiteButton = value;
+				OnPropertyChanged("WebsiteButton");
+			}
+		}
 
         /// <summary>
         /// Selected row in DagaGrid
@@ -82,52 +116,55 @@ namespace QuickRename
        }
 
         /// <summary>
-        /// Overwrite checkbox
-        /// </summary>
-        private bool _Overwrite;
-        public bool Overwrite
-        {
-            get
-            {
-                return _Overwrite;
-            }
-            set
-            {
-                _Overwrite = value;
-                OnPropertyChanged("Overwrite");
-            }
-        }
-
-        /// <summary>
         /// Start wit upper case checkbox
         /// </summary>
-        private bool _StartWithUpperCase;
         public bool StartWithUpperCase
         {
             get
             {
-                return _StartWithUpperCase;
+				return FileNameProcessor.StartWithUpperCase;
             }
             set
             {
-                _StartWithUpperCase = value;
+				FileNameProcessor.StartWithUpperCase = value;
+	            ApplyNamingRules();
+
                 OnPropertyChanged("StartWithUpperCase");
             }
         }
 
+		/// <summary>
+		/// Remove brackets
+		/// </summary>
+	    public bool RemoveBrackets
+	    {
+		    get
+		    {
+				return FileNameProcessor.RemoveBrackets;
+		    }
+		    set
+		    {
+				FileNameProcessor.RemoveBrackets = value;
+				ApplyNamingRules();
+
+				OnPropertyChanged("RemoveBrackets");
+		    }
+		}
+
         /// <summary>
         /// Show extension checkbox
         /// </summary>
-        private bool _ShowExtension;
         public bool ShowExtension
         {
             get
             {
-                return _ShowExtension;
+				return FileNameProcessor.ShowExtension;
             }
             set
             {
-                _ShowExtension = value;
+				FileNameProcessor.ShowExtension = value;
+				ApplyVisualRules();
+
                 OnPropertyChanged("ShowExtension");
             }
         }
@@ -135,19 +172,180 @@ namespace QuickRename
         /// <summary>
         /// Show full path checkbox
         /// </summary>
-        private bool _ShowFullPath;
         public bool ShowFullPath
         {
             get
             {
-                return _ShowFullPath;
+				return FileNameProcessor.ShowFullPath;
             }
             set
             {
-                _ShowFullPath = value;
+				FileNameProcessor.ShowFullPath = value;
+				ApplyVisualRules();
+
                 OnPropertyChanged("ShowFullPath");
             }
         }
 
+
+		/// <summary>
+		/// Rename button
+		/// </summary>
+		private RenameCommand RenameButtonCommand;
+		public ICommand RenameButtonClick
+		{
+			get
+			{
+				if (RenameButtonCommand == null)
+				{
+					RenameButtonCommand = new RenameCommand(this);
+				}
+
+				return RenameButtonCommand;
+			}
+		}
+
+		/// <summary>
+		/// Add file button
+		/// </summary>
+		private AddFileCommand AddFileCommand;
+		public ICommand AddFileButtonClick
+		{
+			get
+			{
+				if (AddFileCommand == null)
+				{
+					AddFileCommand = new AddFileCommand(this);
+				}
+
+				return AddFileCommand;
+			}
+		}
+
+		/// <summary>
+		/// Website button
+		/// </summary>
+		private WebsiteCommand WebsiteCommand;
+		public ICommand WebsiteButtonClick
+		{
+			get
+			{
+				if (WebsiteCommand == null)
+				{
+					WebsiteCommand = new WebsiteCommand();
+				}
+
+				return WebsiteCommand;
+			}
+		}
+
+	    /// <summary>
+		/// Rename button Enabled / Disabled
+	    /// </summary>
+	    private bool _RenameButtonEnabled;
+	    public bool RenameButtonEnabled
+	    {
+		    get
+		    {
+			    return _RenameButtonEnabled;
+		    }
+			set
+			{
+				_RenameButtonEnabled = value;
+				OnPropertyChanged("RenameButtonEnabled");
+			}
+	    }
+
+	    private void CheckButtonState()
+	    {
+			RenameButtonEnabled = DataGridRows.Count > 0;
+	    }
+
+		/// <summary>
+		/// Add files to table
+		/// </summary>
+		/// <param name="files"></param>
+	    public void AddFiles(IEnumerable<string> files)
+	    {
+			foreach (string file in files)
+				AddFile(file);
+	    }
+
+		/// <summary>
+		/// Add file to table
+		/// </summary>
+		/// <param name="file"></param>
+	    public void AddFile(string file)
+	    {
+		    if (FileAlreadyLoaded(file))
+			    return;
+
+		    try
+		    {
+			    GridRowViewModel newRow = new GridRowViewModel(FileNameProcessor, this, file);
+			    DataGridRows.Add(newRow);
+
+			    CheckButtonState();
+		    }
+		    catch
+		    {
+			    SystemSounds.Beep.Play();
+		    }
+	    }
+
+		private bool FileAlreadyLoaded(string file)
+		{
+			foreach (GridRowViewModel item in DataGridRows)
+			{
+				if (item.OldFullPath == file)
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+	    public void RemoveSelected()
+	    {
+			DataGridRows.Remove(SelectedItem);
+			CheckButtonState();
+	    }
+
+		public void RemoveAll()
+		{
+			DataGridRows = new ObservableCollection<GridRowViewModel>();
+			CheckButtonState();
+		}
+
+		public void RenameAll()
+		{
+			var list = DataGridRows;
+
+			if (DataGridRows.Count == 0)
+				return;
+
+			bool success = true;
+
+			for (int i = list.Count - 1; i >= 0; i--)
+			{
+				GridRowViewModel row = list[i];
+
+				bool result = row.Rename();
+
+				DataGridRows.Remove(row);
+
+				success &= result;
+			}
+
+			if (success)
+			{
+				Application.Current.Shutdown();
+			}
+			else
+			{
+				SystemSounds.Beep.Play();
+			}
+		}
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 
-namespace QuickRename
+namespace AutoRename
 {
     /// <summary>
     /// Interaction logic for App.xaml

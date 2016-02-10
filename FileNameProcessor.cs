@@ -1,21 +1,29 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Windows;
 
-namespace QuickRename
+namespace AutoRename
 {
     public class FileNameProcessor
     {
+		private readonly Tuple<string, string>[] BracketsList =
+	    {
+		    new Tuple<string, string>("(", ")"),
+		    new Tuple<string, string>("[", "]"),
+		    new Tuple<string, string>("{", "}")
+	    };
+
         public string[] UpperCaseExceptions = { "HD", "HQ", "SD" };
 
-        private MainViewModel model;
+		public bool ShowFullPath { get; set; }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="viewModel"></param>
-        public FileNameProcessor(MainViewModel viewModel)
-        {
-            model = viewModel;
-        }
+		public bool ShowExtension { get; set; }
+
+		public bool StartWithUpperCase { get; set; }
+
+		public bool ForceOverwrite { get; set; }
+
+		public bool RemoveBrackets { get; set; }
 
         /// <summary>
         /// Make each word to start with upper case
@@ -44,21 +52,21 @@ namespace QuickRename
         }
 
         /// <summary>
-        /// 
+        /// Apply visual rules to input file
         /// </summary>
         /// <param name="file"></param>
         /// <returns></returns>
-        public string ApplyRules(string file)
+        public string ApplyVisualRules(string file)
         {
-            if (model.ShowFullPath && model.ShowExtension)
+            if (ShowFullPath && ShowExtension)
             {
                 return file;
             }
-            else if (model.ShowFullPath)
+            else if (ShowFullPath)
             {
                 return Path.GetDirectoryName(file) + Path.DirectorySeparatorChar + Path.GetFileNameWithoutExtension(file);
             }
-            else if (model.ShowExtension)
+            else if (ShowExtension)
             {
                 return Path.GetFileName(file);
             }
@@ -111,15 +119,79 @@ namespace QuickRename
                     break;
             }
 
-            if (model.StartWithUpperCase)
+	        if (RemoveBrackets)
+	        {
+		        //TODO: implement via automaton
+		        foreach (var brackets in BracketsList)
+				{
+					newStr = RemoveStringInBrackets(newStr, brackets);
+		        }
+	        }
+
+	        if (StartWithUpperCase)
             {
                 newStr = ChangeToUpperCase(newStr);
             }
 
-            newStr = PostProcess(newStr);
+            newStr = RemoveMultipleSpaces(newStr);
 
             return new FileInfo(directory + "\\" + newStr + fi.Extension).FullName;
         }
+
+	    private string RemoveStringInBrackets(string newStr, Tuple<string, string> brackets)
+	    {
+		    int start = 0;
+
+		    do
+		    {
+				int startIndex = newStr.IndexOf(brackets.Item1, start, StringComparison.Ordinal);
+
+			    if (startIndex == -1)
+				    break;
+
+				int endIndex = newStr.IndexOf(brackets.Item2, startIndex, StringComparison.Ordinal);
+
+			    if (endIndex == -1)
+				    break;
+
+				newStr = newStr.Remove(startIndex, endIndex - startIndex + 1);
+			    start = startIndex;
+
+		    } while (true);
+
+		    return newStr;
+	    }
+
+	    /// <summary>
+		/// Try to rename file
+		/// </summary>
+		/// <returns></returns>
+		public bool Rename(string from, string to)
+		{
+			if (from == to)
+				return true;
+
+			if (!ForceOverwrite && File.Exists(to))
+			{
+				if (MessageBox.Show("Do you want to overwrite " + to + "?", "File already exists", MessageBoxButton.YesNo) == MessageBoxResult.No)
+					return false;
+			}
+
+			if (Utility.ItemExists(from))
+			{
+				try
+				{
+					Directory.Move(from, to);
+					return true;
+				}
+				catch
+				{
+					// ignored
+				}
+			}	
+			
+			return false;
+		}
 
         private string ProcessHyphen(string file)
         {
@@ -197,7 +269,7 @@ namespace QuickRename
             return separators[index];
         }
 
-        private string PostProcess(string file)
+        private string RemoveMultipleSpaces(string file)
         {
             string newFile = string.Empty;
 

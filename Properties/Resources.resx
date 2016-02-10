@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -121,9 +121,17 @@
     <value>config.ini</value>
   </data>
   <data name="HomePage" xml:space="preserve">
-    <value>https://github.com/spixy/QuickRename</value>
+    <value>https://github.com/spixy/AutoRename</value>
   </data>
   <data name="UpdateFile" xml:space="preserve">
-    <value>https://raw.githubusercontent.com/spixy/QuickRename/master/lastversion</value>
+    <value>https://raw.githubusercontent.com/spixy/AutoRename/master/lastversion</value>
+  </data>
+  <data name="WebsiteButtonUpdate" xml:space="preserve">
+    <value>Update to
+new version</value>
+  </data>
+  <data name="WebsiteButtonVisit" xml:space="preserve">
+    <value>Visit
+website</value>
   </data>
 </root>

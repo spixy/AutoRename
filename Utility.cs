@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 
-namespace QuickRename
+namespace AutoRename
 {
-    static class Utility
+    public static class Utility
     {
-        public static readonly Version AppVersion = Assembly.GetExecutingAssembly().GetName().Version;
+		/// <summary>
+		/// Current Assembly
+		/// </summary>
+		public static readonly AssemblyName CurrentApplication = Assembly.GetExecutingAssembly().GetName();
 
         /// <summary>
         /// Get maximum or -1 if multiple maximums

@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace QuickRename.Properties {
+namespace AutoRename.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
