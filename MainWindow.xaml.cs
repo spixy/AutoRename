@@ -84,6 +84,13 @@ namespace AutoRename
                             model.StartWithUpperCase = val;
                     }
 
+					if (lineInLower.StartsWith("remove brackets "))
+					{
+						bool val;
+						if (bool.TryParse(lineInLower.Replace("remove brackets ", ""), out val))
+							model.RemoveBrackets = val;
+					}
+
 					if (lineInLower.StartsWith("extension "))
                     {
                         bool val;
@@ -152,6 +159,7 @@ namespace AutoRename
 				{
 					sw.WriteLine("Overwrite " + fileNameProcessor.ForceOverwrite);
 					sw.WriteLine("Uppercase " + fileNameProcessor.StartWithUpperCase);
+					sw.WriteLine("Remove brackets " + fileNameProcessor.RemoveBrackets);
                     sw.WriteLine("Extension " + fileNameProcessor.ShowExtension);
 					sw.WriteLine("Full path " + fileNameProcessor.ShowFullPath);
 					sw.WriteLine("Position " + Left + "x" + Top);
