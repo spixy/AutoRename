@@ -63,10 +63,11 @@ namespace AutoRename
             {
                 using (WebClient update = new WebClient())
                 {
-                    LatestVersion = update.DownloadString(UpdateFile);
+					LatestVersion = update.DownloadString(UpdateFile).Trim();
                 }
 
-                return (LatestVersion != Utility.CurrentApplication.Version.ToString());
+				string currentVersion = Utility.CurrentApplication.Version.ToString().Trim();
+				return currentVersion != LatestVersion;
             }
             catch
             {
