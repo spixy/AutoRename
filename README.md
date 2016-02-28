@@ -1,7 +1,8 @@
 # AutoRename
 Automatically changes file names to human-friendly names
- * Removes unnecessary characters
- * Words start with upper case
+ * Removes white space and unnecessary characters
+ * Words start with upper case (optionable)
+ * Removes content within brackets (optionable)
 
 ### Download
 [v2.2.1 (rar)](https://github.com/spixy/AutoRename/releases/download/2.2.1/AutoRename.rar)
