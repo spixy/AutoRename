@@ -12,162 +12,197 @@ namespace AutoRename
 		private static readonly SolidColorBrush normalBrush = new SolidColorBrush(Colors.White);
 		private static readonly SolidColorBrush errorBrush = new SolidColorBrush(Colors.Red);
 
-        public event PropertyChangedEventHandler PropertyChanged;
+		private static FileNameProcessor fileNameProcessor { get { return FileNameProcessor.Instance; } }
 
-        protected void OnPropertyChanged(string propertyName)
-        {
-            if (PropertyChanged != null)
-            {
-                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-            }
-        }
+		private readonly MainViewModel mainViewModel;
 
-		public GridRowViewModel(FileNameProcessor fileNameProcessor, MainViewModel mainViewModel, string file)
+		private bool isEditing;
+
+		public event PropertyChangedEventHandler PropertyChanged = (sender, args) =>
 		{
-			FileNameProcessor = fileNameProcessor;
-		    MainViewModel = mainViewModel;
+			GridRowViewModel model = (GridRowViewModel)sender;
+
+			switch (args.PropertyName)
+			{
+				case "NewViewPath":
+					model.ValuesChanged(EditType.FileName);
+					break;
+
+				case "StartWithUpperCase":
+					model.ValuesChanged(EditType.UpperCase);
+					break;
+
+				case "RemoveBrackets":
+					model.ValuesChanged(EditType.Brackets);
+					break;
+			}
+		};
+
+		private void OnPropertyChanged(string propertyName)
+		{
+			if (PropertyChanged != null)
+			{
+				PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+			}
+		}
+
+		public GridRowViewModel(MainViewModel mainViewModel, string file)
+		{
+		    this.mainViewModel = mainViewModel;
+
+			isEditing = true;
 
 			OldFullPath = file;
-			OldViewPath = FileNameProcessor.ApplyVisualRules(OldFullPath);
+			OldViewPath = fileNameProcessor.ApplyVisualRules(OldFullPath);
+			NewFullPath = fileNameProcessor.QRename(file);
+			NewViewPath = fileNameProcessor.ApplyVisualRules(NewFullPath);
 
-			NewFullPath = FileNameProcessor.QRename(file);
-			NewViewPath = FileNameProcessor.ApplyVisualRules(NewFullPath);
+			isEditing = false;
 	    }
-
-		/// <summary>
-		/// File Name Processor
-		/// </summary>
-		public FileNameProcessor FileNameProcessor { get; private set; }
-
-		public MainViewModel MainViewModel { get; private set; }
 
 	    /// <summary>
 	    /// Background brush
 	    /// </summary>
-	    private SolidColorBrush _Brush = normalBrush;
-        public SolidColorBrush Brush
-        {
-            get
-            {
-				return _Brush;
-            }
-	        private set
-	        {
-		        _Brush = value;
-				OnPropertyChanged("Brush");
-	        }
-        }
-
-        /// <summary>
-        /// Error flag (hidden)
-		/// </summary>
-		private bool _Error { get; set; }
-		public bool Error
-		{
-			get
-			{
-				return _Error;
-			}
+	    private SolidColorBrush _brush = normalBrush;
+	    public SolidColorBrush Brush
+	    {
+		    get { return _brush; }
 			private set
 			{
-				_Error = value;
-				Brush = value ? errorBrush : normalBrush;
-				OnPropertyChanged("Error");
+				_brush = value;
+				OnPropertyChanged("Brush");
 			}
-		}
+	    }
 
-        /// <summary>
+	    /// <summary>
         /// File - full path (hidden)
         /// </summary>
-        private string _OldFullPath;
-        public string OldFullPath
-        {
-            get
-            {
-                return _OldFullPath;
-            }
-            set
-            {
-                _OldFullPath = value;
-                OnPropertyChanged("OldFullPath");
-            }
-        }
+        private string _oldFullPath;
+	    public string OldFullPath
+	    {
+		    get { return _oldFullPath; }
+			set
+			{
+				_oldFullPath = value;
+				OnPropertyChanged("OldFullPath");
+			}
+	    }
 
-        /// <summary>
+	    /// <summary>
         /// File - file name shown in cell
         /// </summary>
-        private string _OldViewPath;
-        public string OldViewPath
-        {
-            get
-            {
-                return _OldViewPath;
-            }
-            set
-            {
-                _OldViewPath = value;
-                OnPropertyChanged("OldViewPath");
-            }
-        }
+        private string _oldViewPath;
+	    public string OldViewPath
+	    {
+		    get { return _oldViewPath; }
+			set
+			{
+				_oldViewPath = value;
+				OnPropertyChanged("OldViewPath");
+			}
+	    }
 
-        /// <summary>
+	    /// <summary>
         /// New file - full path (hidden)
         /// </summary>
-        private string _NewFullPath;
-        public string NewFullPath
-        {
-            get
-            {
-                return _NewFullPath;
-            }
-            set
-            {
-                _NewFullPath = value;
-                OnPropertyChanged("NewFullPath");
-            }
-        }
+        private string _newFullPath;
+	    public string NewFullPath
+	    {
+		    get { return _newFullPath; }
+			set
+			{
+				_newFullPath = value;
+				OnPropertyChanged("NewFullPath");
+			}
+	    }
 
-        /// <summary>
+	    /// <summary>
         /// New file - file name shown in cell
         /// </summary>
-        private string _NewViewPath;
-        public string NewViewPath
-        {
-            get
-            {
-                return _NewViewPath;
-            }
-            set
-            {
-                _NewViewPath = value;
-	            FileNameChanged();
-                OnPropertyChanged("NewViewPath");
-            }
-        }
+        private string _newViewPath;
+	    public string NewViewPath
+	    {
+		    get { return _newViewPath; }
+		    set
+		    {
+			    _newViewPath = value;
+				OnPropertyChanged("NewViewPath");
+		    }
+	    }
 
-		private void FileNameChanged()
-		{
-			if (MainViewModel.ShowExtension)
-			{
-				NewFullPath = Path.GetDirectoryName(NewFullPath) + Path.DirectorySeparatorChar + NewViewPath;
-			}
-			else
-			{
-				NewFullPath = Path.GetDirectoryName(NewFullPath) + Path.DirectorySeparatorChar + Path.GetFileNameWithoutExtension(NewViewPath) + Path.GetExtension(NewFullPath);
-			}
-		}
-
+	    /// <summary>
+		/// Rename file
+		/// </summary>
+		/// <returns>success or failure</returns>
 		public bool Rename()
 		{
-			if (FileNameProcessor.Rename(OldFullPath, NewFullPath))
+			if (fileNameProcessor.Rename(OldFullPath, NewFullPath))
 			{
 				return true;
 			}
 			else
 			{
-				Error = true;
+				Brush = errorBrush;
 				return false;
 			}
+		}
+
+
+	    private bool _startWithUpperCase = FileNameProcessor.Instance.StartWithUpperCase;
+		public bool StartWithUpperCase
+		{
+			get { return _startWithUpperCase; }
+			set
+			{
+				_startWithUpperCase = value;
+				OnPropertyChanged("StartWithUpperCase");
+			}
+		}
+
+		private bool _removeBrackets = FileNameProcessor.Instance.RemoveBrackets;
+		public bool RemoveBrackets
+		{
+			get { return _removeBrackets; }
+			set
+			{
+				_removeBrackets = value;
+				OnPropertyChanged("RemoveBrackets");
+			}
+		}
+
+		/// <summary>
+		/// Value changed through GUI
+		/// </summary>
+		/// <param name="type">value type</param>
+		public void ValuesChanged(EditType type)
+		{
+			if (isEditing)
+				return;
+
+			isEditing = true;
+
+			switch (type)
+			{
+				case EditType.FileName:
+					if (mainViewModel.ShowExtension)
+						NewFullPath = Path.GetDirectoryName(NewFullPath) + Path.DirectorySeparatorChar + NewViewPath;
+					else
+						NewFullPath = Path.GetDirectoryName(NewFullPath) + Path.DirectorySeparatorChar + Path.GetFileNameWithoutExtension(NewViewPath) + Path.GetExtension(NewFullPath);
+					break;
+
+				case EditType.UpperCase:
+				case EditType.Brackets:
+					NewFullPath = fileNameProcessor.QRename(OldFullPath, StartWithUpperCase, RemoveBrackets);
+					NewViewPath = fileNameProcessor.ApplyVisualRules(NewFullPath);			
+					break;
+
+				case EditType.Visual:
+					OldViewPath = fileNameProcessor.ApplyVisualRules(OldFullPath);
+					NewViewPath = fileNameProcessor.ApplyVisualRules(NewFullPath);
+					break;
+			}
+
+			isEditing = false;
 		}
     }
 }

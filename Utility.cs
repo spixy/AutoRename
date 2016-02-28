@@ -91,5 +91,17 @@ namespace AutoRename
         {
             return File.Exists(path) || Directory.Exists(path);
         }
+
+		/// <summary>
+		/// Limits value to interval
+		/// </summary>
+		/// <param name="value">input value</param>
+		/// <param name="min">min value</param>
+		/// <param name="max">max value</param>
+		/// <returns></returns>
+		public static double Clamp(double value, double min, double max)
+		{
+			return (value < min) ? min : (value > max) ? max : value;
+		}
     }
 }

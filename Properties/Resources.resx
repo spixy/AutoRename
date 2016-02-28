@@ -121,7 +121,7 @@
     <value>config.ini</value>
   </data>
   <data name="HomePage" xml:space="preserve">
-    <value>https://github.com/spixy/AutoRename</value>
+    <value>https://github.com/spixy/AutoRename/blob/master/README.md</value>
   </data>
   <data name="UpdateFile" xml:space="preserve">
     <value>https://raw.githubusercontent.com/spixy/AutoRename/master/lastversion</value>

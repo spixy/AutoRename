@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace AutoRename
 {
@@ -9,27 +10,20 @@ namespace AutoRename
     /// </summary>
     public partial class MainWindow : Window
     {
-        #region Properties
+		private static FileNameProcessor fileNameProcessor { get { return FileNameProcessor.Instance; } }
 
+		private readonly MainViewModel model;
 		private bool renameAutomatically = false;
-
-        private readonly MainViewModel model;
-
-	    private readonly FileNameProcessor fileNameProcessor;
-
-        #endregion
-
-        #region Start and Exit
 
         public MainWindow()
         {
             InitializeComponent();
 
-			fileNameProcessor = new FileNameProcessor();
-			model = new MainViewModel(fileNameProcessor);
-
+			model = new MainViewModel();
 	        // bind to UI
-            DataContext = model;
+			DataContext = model;
+
+			LoadSettings();
         }
 
         private void LoadArgv()
@@ -73,47 +67,74 @@ namespace AutoRename
                 string[] lines = File.ReadAllLines(Properties.Resources.ConfigFile);
 
                 foreach (string line in lines)
-				{
-					if (line.Contains("overwrite "))
+                {
+					string lineInLower = line.ToLowerInvariant();
+
+					if (lineInLower.StartsWith("overwrite "))
 					{
 						bool val;
-						if (bool.TryParse(line.Replace("overwrite ", ""), out val))
+						if (bool.TryParse(lineInLower.Replace("overwrite ", ""), out val))
 							fileNameProcessor.ForceOverwrite = val;
 					}
 
-                    if (line.Contains("uppercase "))
+					if (lineInLower.StartsWith("uppercase "))
                     {
                         bool val;
-                        if (bool.TryParse(line.Replace("uppercase ", ""), out val))
+						if (bool.TryParse(lineInLower.Replace("uppercase ", ""), out val))
                             model.StartWithUpperCase = val;
                     }
 
-                    if (line.Contains("extension "))
+					if (lineInLower.StartsWith("extension "))
                     {
                         bool val;
-                        if (bool.TryParse(line.Replace("extension ", ""), out val))
+						if (bool.TryParse(lineInLower.Replace("extension ", ""), out val))
                             model.ShowExtension = val;
                     }
 
-                    if (line.Contains("full path "))
+					if (lineInLower.StartsWith("full path "))
                     {
                         bool val;
-                        if (bool.TryParse(line.Replace("full path ", ""), out val))
+                        if (bool.TryParse(lineInLower.Replace("full path ", ""), out val))
                             model.ShowFullPath = val;
                     }
 
-                    if (line.Contains("window ") && line.Length > 9)
-                    {
-                        string res = line.Replace("window ", "");
-                        int delim = res.IndexOf('x');
+					if (lineInLower.StartsWith("position "))
+					{
+						string[] vals = lineInLower.Replace("position ", "").Split('x');
 
-                        Width = Convert.ToInt32(res.Substring(0, delim));
-                        Height = Convert.ToInt32(res.Substring(delim + 1));
+						if (vals.Length == 2)
+						{
+							double x, y;
+
+							if (double.TryParse(vals[0], out x) && double.TryParse(vals[1], out y))
+							{
+								Rect screen = SystemParameters.WorkArea;
+								Left = Utility.Clamp(x, screen.Left, screen.Right);
+								Top = Utility.Clamp(y, screen.Top, screen.Bottom);
+							}
+						}
+					}
+
+					if (lineInLower.StartsWith("window "))
+					{
+						string[] vals = lineInLower.Replace("window ", "").Split('x');
+
+						if (vals.Length == 2)
+	                    {
+							double w, h;
+
+							if (double.TryParse(vals[0], out w) && double.TryParse(vals[1], out h))
+							{
+								Width = w;
+								Height = h;
+							}
+	                    }
                     }
 
-                    if (line.Contains("UpperCaseExceptions ") && line.Length > 20)
-                    {
-                        fileNameProcessor.UpperCaseExceptions = line.Replace("UpperCaseExceptions ","").Split('|');
+					if (lineInLower.StartsWith("uppercaseexceptions "))
+					{
+						string values = line.Substring("uppercaseexceptions ".Length);
+						fileNameProcessor.UpperCaseExceptions = values.Split('|');
                     }
                 }
             }
@@ -129,11 +150,12 @@ namespace AutoRename
             {
                 using (StreamWriter sw = new StreamWriter(Properties.Resources.ConfigFile, false))
 				{
-					sw.WriteLine("overwrite " + fileNameProcessor.ForceOverwrite);
-					sw.WriteLine("uppercase " + fileNameProcessor.StartWithUpperCase);
-                    sw.WriteLine("extension " + fileNameProcessor.ShowExtension);
-					sw.WriteLine("full path " + fileNameProcessor.ShowFullPath);
-                    sw.WriteLine("window " + Width + "x" + Height);
+					sw.WriteLine("Overwrite " + fileNameProcessor.ForceOverwrite);
+					sw.WriteLine("Uppercase " + fileNameProcessor.StartWithUpperCase);
+                    sw.WriteLine("Extension " + fileNameProcessor.ShowExtension);
+					sw.WriteLine("Full path " + fileNameProcessor.ShowFullPath);
+					sw.WriteLine("Position " + Left + "x" + Top);
+                    sw.WriteLine("Window " + Width + "x" + Height);
                     sw.WriteLine("UpperCaseExceptions " + string.Join("|", fileNameProcessor.UpperCaseExceptions));
                 }
             }
@@ -143,13 +165,8 @@ namespace AutoRename
             }
         }
 
-        #endregion
-
-        #region Events
-
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            LoadSettings();
             LoadArgv();
 
             if (renameAutomatically)
@@ -160,11 +177,16 @@ namespace AutoRename
             {
 	            Updater updater = new Updater(Properties.Resources.UpdateFile)
 	            {
-					UpdateAvailableAction = () => model.WebsiteButton = Properties.Resources.WebsiteButtonUpdate
+					UpdateAvailableAction = UpdateAvailable
 	            };
 	            updater.IsUpdateAvailableAsync();
             }
         }
+
+	    private void UpdateAvailable()
+	    {
+		    model.WebsiteButton = Properties.Resources.WebsiteButtonUpdate;
+	    }
 
         private void Window_Closed(object sender, EventArgs e)
         {
@@ -182,10 +204,25 @@ namespace AutoRename
             string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
 
             if (files != null)
-            {
                 model.AddFiles(files);
-            }
         }
+
+		private void StartWithUpperCase_Click(object sender, RoutedEventArgs e)
+		{
+			GridRowViewModel selectedItem = model.SelectedItem;
+			MenuItem menuItem = (MenuItem) sender;
+
+			selectedItem.StartWithUpperCase = menuItem.IsChecked;
+
+		}
+
+		private void RemoveBrackets_Click(object sender, RoutedEventArgs e)
+		{
+			GridRowViewModel selectedItem = model.SelectedItem;
+			MenuItem menuItem = (MenuItem)sender;
+
+			selectedItem.RemoveBrackets = menuItem.IsChecked;
+		}
 
         private void ClearAll_Click(object sender, RoutedEventArgs e)
         {
@@ -196,7 +233,5 @@ namespace AutoRename
 	    {
 		    model.RemoveSelected();
 	    }
-
-	    #endregion
     }
 }

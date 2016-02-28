@@ -70,7 +70,7 @@ namespace AutoRename.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://github.com/spixy/AutoRename.
+        ///   Looks up a localized string similar to https://github.com/spixy/AutoRename/blob/master/README.md.
         /// </summary>
         internal static string HomePage {
             get {
@@ -88,7 +88,8 @@ namespace AutoRename.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Update to\r\nnew version.
+        ///   Looks up a localized string similar to Update to
+        ///new version.
         /// </summary>
         internal static string WebsiteButtonUpdate {
             get {
@@ -97,7 +98,8 @@ namespace AutoRename.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Visit\r\nwebsite.
+        ///   Looks up a localized string similar to Visit
+        ///website.
         /// </summary>
         internal static string WebsiteButtonVisit {
             get {

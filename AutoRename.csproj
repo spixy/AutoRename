@@ -58,6 +58,7 @@
     <Compile Include="GridRowViewModel.cs" />
     <Compile Include="FileNameProcessor.cs" />
     <Compile Include="RenameCommand.cs" />
+    <Compile Include="Singleton.cs" />
     <Compile Include="Updater.cs" />
     <Compile Include="Utility.cs" />
     <Compile Include="MainViewModel.cs" />

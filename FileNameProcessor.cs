@@ -1,10 +1,11 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 using System.Windows;
 
 namespace AutoRename
 {
-    public class FileNameProcessor
+	public class FileNameProcessor : Singleton<FileNameProcessor>
     {
 		private readonly Tuple<string, string>[] BracketsList =
 	    {
@@ -21,9 +22,9 @@ namespace AutoRename
 
 		public bool StartWithUpperCase { get; set; }
 
-		public bool ForceOverwrite { get; set; }
-
 		public bool RemoveBrackets { get; set; }
+
+		public bool ForceOverwrite { get; set; }
 
         /// <summary>
         /// Make each word to start with upper case
@@ -33,22 +34,21 @@ namespace AutoRename
             if (string.IsNullOrEmpty(text))
                 return string.Empty;
 
-            string[] words = text.Split(' ');
+	        char[] chars = text.ToCharArray();
 
-            string result = string.Empty;
+			StringBuilder sb = new StringBuilder(chars.Length + 1);
 
-            foreach (var word in words)
-            {
-                if (word.Length > 0)
-                {
-                    if (UpperCaseExceptions.IsStringInArray(word, true))
-                        result += word + ' ';
-                    else
-                        result += char.ToUpperInvariant(word[0]) + word.Substring(1).ToLowerInvariant() + ' ';
-                }
-            }
+			sb.Append(char.ToUpper(chars[0]));
 
-            return result.Substring(0, result.Length - 1);
+	        for (int i = 1; i < chars.Length; i++)
+	        {
+		        if (chars[i-1] == ' ')
+			        sb.Append(char.ToUpper(chars[i]));
+		        else
+					sb.Append(chars[i]);
+	        }
+
+	        return sb.ToString();
         }
 
         /// <summary>
@@ -60,7 +60,7 @@ namespace AutoRename
         {
             if (ShowFullPath && ShowExtension)
             {
-                return file;
+	            return file;
             }
             else if (ShowFullPath)
             {
@@ -76,10 +76,23 @@ namespace AutoRename
             }
         }
 
-        /// <summary>
-        /// Get new file name
-        /// </summary>
-        public string QRename(string file)
+		/// <summary>
+		/// Get new file name
+		/// </summary>
+		/// <param name="file">file path</param>
+		public string QRename(string file)
+		{
+			return QRename(file, StartWithUpperCase, RemoveBrackets);
+		}
+
+		/// <summary>
+		/// Get new file name
+		/// </summary>
+		/// <param name="file">file path</param>
+		/// <param name="startWithUpperCase">custom settings</param>
+		/// <param name="removeBrackets">custom settings</param>
+		/// <returns></returns>
+		public string QRename(string file, bool startWithUpperCase, bool removeBrackets)
         {
             string newStr;
             bool isDirectory = Directory.Exists(file);
@@ -119,7 +132,7 @@ namespace AutoRename
                     break;
             }
 
-	        if (RemoveBrackets)
+			if (removeBrackets)
 	        {
 		        //TODO: implement via automaton
 		        foreach (var brackets in BracketsList)
@@ -128,7 +141,7 @@ namespace AutoRename
 		        }
 	        }
 
-	        if (StartWithUpperCase)
+			if (startWithUpperCase)
             {
                 newStr = ChangeToUpperCase(newStr);
             }
