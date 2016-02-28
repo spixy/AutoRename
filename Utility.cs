@@ -12,31 +12,31 @@ namespace AutoRename
 		/// </summary>
 		public static readonly AssemblyName CurrentApplication = Assembly.GetExecutingAssembly().GetName();
 
-        /// <summary>
-        /// Get maximum or -1 if multiple maximums
-        /// </summary>
-        public static int Max(int[] a)
+		/// <summary>
+		/// Get maximum index or "defaultIndex" if multiple maximums
+		/// </summary>
+		public static T GetMaxIndex<T>(Dictionary<T,int> dictionary, T defaultIndex)
         {
             int max = 0;
-            int index = -1;
+			T index = default(T);
             bool equals = false;
 
-            for (int i = 0; i < a.Length; i++)
+            foreach (var kvp in dictionary)
             {
-                if (a[i] == max)
+                if (kvp.Value == max)
                 {
                     equals = true;
                 }
-                else if (a[i] > max)
+				else if (kvp.Value > max)
                 {
-                    index = i;
-                    max = a[i];
+                    index = kvp.Key;
+					max = kvp.Value;
                     equals = false;
                 }
             }
 
-            if (equals)
-                index = -1;
+	        if (equals)
+		        index = defaultIndex;
 
             return index;
         }

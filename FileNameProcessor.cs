@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Windows;
@@ -134,11 +135,9 @@ namespace AutoRename
 
 			if (removeBrackets)
 	        {
-		        //TODO: implement via automaton
+		        //TODO: implement via automaton maybe
 		        foreach (var brackets in BracketsList)
-				{
 					newStr = RemoveStringInBrackets(newStr, brackets);
-		        }
 	        }
 
 			if (startWithUpperCase)
@@ -146,9 +145,11 @@ namespace AutoRename
                 newStr = ChangeToUpperCase(newStr);
             }
 
-            newStr = RemoveMultipleSpaces(newStr);
+			newStr = RemoveMultipleSpaces(newStr).Trim();
 
-            return new FileInfo(directory + "\\" + newStr + fi.Extension).FullName;
+			FileInfo fileInfo = new FileInfo(directory + "\\" + newStr + fi.Extension);
+
+            return fileInfo.FullName;
         }
 
 	    private string RemoveStringInBrackets(string newStr, Tuple<string, string> brackets)
@@ -247,39 +248,36 @@ namespace AutoRename
 
         private char FindSeparator(string str)
         {
-            int hyphens = 0;
-            int dots = 0;
-            int perc20s = 0;
-
             if (str.Contains(" "))
                 return ' ';
 
-            for (int i = 0; i < str.Length; i++)
-                switch (str[i])
+	        Dictionary<char, int> values = new Dictionary<char, int>();
+
+	        values['_'] = 0;
+	        values['.'] = 0;
+	        values['-'] = 0;
+	        values['%'] = 0;
+	        
+	        for (int i = 0; i < str.Length; ++i)
+            {
+	            char c = str[i];
+
+				switch (c)
                 {
-                    case '_':
-                        return '_';
+					case '_':
+					case '.':
+					case '-':
+		                values[c]++;
+		                break;
 
-                    case '.':
-                        dots++;
-                        break;
-
-                    case '-':
-                        hyphens++;
-                        break;
-
-                    case '0': // "%20"
-                        if ((i > 1) && (str[i - 1] == '2') && (str[i - 2] == '%'))
-                            perc20s++;
+					case '0': // %20
+                        if ((i >= 2) && (str[i - 1] == '2') && (str[i - 2] == '%'))
+                           values['%']++;
                         break;
                 }
+			}
 
-            int[] array = { hyphens, dots, perc20s };
-            char[] separators = { ' ', '-', '.', '%' };
-
-            int index = Utility.Max(array) + 1;
-
-            return separators[index];
+			return Utility.GetMaxIndex(values, ' ');
         }
 
         private string RemoveMultipleSpaces(string file)
