@@ -5,7 +5,7 @@ Automatically changes file names to human-friendly names
  * Removes content within brackets (optionable)
 
 ### Download
-[v2.2.1 (rar)](https://github.com/spixy/AutoRename/releases/download/2.2.1/AutoRename.rar)
+[v2.2.1 (rar)](https://github.com/spixy/AutoRename/releases/download/2.2.1/AutoRename.zip)
 
 ### Screenshots
 ![image](https://cloud.githubusercontent.com/assets/4542110/13381078/60891840-de52-11e5-8e51-5f2ea65aeb61.png)
