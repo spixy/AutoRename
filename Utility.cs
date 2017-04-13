@@ -68,22 +68,6 @@ namespace AutoRename
         }
 
         /// <summary>
-        /// Remove string from array
-        /// </summary>
-        public static string[] RemoveString(string[] strArray, string str)
-        {
-            List<string> list = new List<string>();
-
-            foreach (string s in strArray)
-            {
-                if (s != str)
-                    list.Add(s);
-            }
-
-            return list.ToArray();
-        }
-
-        /// <summary>
         /// Determines whether the specified file or directory exists
         /// </summary>
         /// <param name="path">The path to check</param>

@@ -7,9 +7,9 @@
 
 	<Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="50" />
-            <RowDefinition Height="*" />
             <RowDefinition Height="55" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="50" />
         </Grid.RowDefinitions>
 
         <Grid Grid.Row="0">
@@ -19,24 +19,28 @@
 				<ColumnDefinition Width="200" />
 				<ColumnDefinition Width="145" />
 			</Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
+			<Grid.RowDefinitions>
+				<RowDefinition Height="1" />
+				<RowDefinition Height="*" />
                 <RowDefinition Height="*" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
+				<RowDefinition Height="*" />
+				<RowDefinition Height="1" />
+			</Grid.RowDefinitions>
 
-			<Button Grid.Column="0" Grid.RowSpan="2" Command="{Binding AddFileButtonClick}" Margin="1,0,0,0" >
+			<Button Grid.Column="0" Grid.Row="1" Grid.RowSpan="3" Command="{Binding AddFileButtonClick}" Margin="1,0,0,0" >
 				<TextBlock Text="Add file" FontSize="14" TextAlignment="Center"/>
             </Button>
 
-			<Button Grid.Column="1" Grid.RowSpan="2" Command="{Binding WebsiteButtonClick}" Margin="1,0,0,0" >
+			<Button Grid.Column="1" Grid.Row="1" Grid.RowSpan="3" Command="{Binding WebsiteButtonClick}" Margin="1,0,0,0" >
 				<TextBlock Text="{Binding Path=WebsiteButton}" FontSize="14" TextAlignment="Center"/>
             </Button>
 
-			<CheckBox Grid.Column="2" Grid.Row="0" Content="Words start with upper case" IsChecked="{Binding Path=StartWithUpperCase, Mode=TwoWay}" Margin="15,4,0,0"/>
-			<CheckBox Grid.Column="2" Grid.Row="1" Content="Remove brackets" IsChecked="{Binding Path=RemoveBrackets, Mode=TwoWay}" Margin="15,2,0,0"/>
+			<CheckBox Grid.Column="2" Grid.Row="1" Content="Words start with upper case" IsChecked="{Binding Path=StartWithUpperCase, Mode=TwoWay}" Margin="10,0,0,0"/>
+			<CheckBox Grid.Column="2" Grid.Row="2" Content="Remove brackets" IsChecked="{Binding Path=RemoveBrackets, Mode=TwoWay}" Margin="10,0,0,0"/>
+			<CheckBox Grid.Column="2" Grid.Row="3" Content="Remove starting number" IsChecked="{Binding Path=RemoveStartingNumber, Mode=TwoWay}" Margin="10,0,0,0"/>
 
-			<CheckBox Grid.Column="3" Grid.Row="0" Content="Show file extension" IsChecked="{Binding Path=ShowExtension, Mode=TwoWay}" Margin="15,4,0,0"/>
-			<CheckBox Grid.Column="3" Grid.Row="1" Content="Show full path" IsChecked="{Binding Path=ShowFullPath, Mode=TwoWay}" Margin="15,2,0,0"/>
+			<CheckBox Grid.Column="3" Grid.Row="1" Content="Show file extension" IsChecked="{Binding Path=ShowExtension, Mode=TwoWay}" Margin="10,0,0,0"/>
+			<CheckBox Grid.Column="3" Grid.Row="2" Content="Show full path" IsChecked="{Binding Path=ShowFullPath, Mode=TwoWay}" Margin="10,0,0,0"/>
 		</Grid>
 		
 		<DataGrid Grid.Row="1" Name="DataGrid" ItemsSource="{Binding Path=DataGridRows, Mode=TwoWay}" SelectedItem="{Binding Path=SelectedItem, Mode=TwoWay}"
@@ -80,8 +84,9 @@
 				<ContextMenu Name="Menu">
 					<MenuItem Visibility="{Binding RowSettingsEnabled}" Header="Start with upper case" IsCheckable="True" Checked="StartWithUpperCase_Click" IsChecked="{Binding SelectedItem.StartWithUpperCase}"/>
 					<MenuItem Visibility="{Binding RowSettingsEnabled}" Header="Remove brackets" IsCheckable="True" Checked="RemoveBrackets_Click" IsChecked="{Binding SelectedItem.RemoveBrackets}"/>
+					<MenuItem Visibility="{Binding RowSettingsEnabled}" Header="Remove starting number" IsCheckable="True" Checked="RemoveStartingNumber_Click" IsChecked="{Binding SelectedItem.RemoveStartingNumber}"/>
 					<Separator Visibility="{Binding RowSettingsEnabled}" />
-					<MenuItem IsEnabled="{Binding ContextMenuEnabled}" Header="Remove" Click="Clear_Click"/>
+					<MenuItem Visibility="{Binding RowSettingsEnabled}" Header="Remove" Click="Clear_Click"/>
 					<MenuItem IsEnabled="{Binding ContextMenuEnabled}" Header="Clear all" Click="ClearAll_Click"/>
                 </ContextMenu>
             </DataGrid.ContextMenu>

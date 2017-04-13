@@ -12,9 +12,7 @@ namespace AutoRename
 		private static readonly SolidColorBrush normalBrush = new SolidColorBrush(Colors.White);
 		private static readonly SolidColorBrush errorBrush = new SolidColorBrush(Colors.Red);
 
-		private static FileNameProcessor fileNameProcessor { get { return FileNameProcessor.Instance; } }
-
-		private readonly MainViewModel mainViewModel;
+	    private readonly MainViewModel mainViewModel;
 
 		private bool isEditing;
 
@@ -35,6 +33,10 @@ namespace AutoRename
 				case "RemoveBrackets":
 					model.ValuesChanged(EditType.Brackets);
 					break;
+
+				case "RemoveStartingNumber":
+					model.ValuesChanged(EditType.StartingNumber);
+					break;
 			}
 		};
 
@@ -53,8 +55,10 @@ namespace AutoRename
 			isEditing = true;
 
 			OldFullPath = file;
+
+			FileNameProcessor fileNameProcessor = FileNameProcessor.Instance;
 			OldViewPath = fileNameProcessor.ApplyVisualRules(OldFullPath);
-			NewFullPath = fileNameProcessor.QRename(file);
+			NewFullPath = fileNameProcessor.AutoRename(OldFullPath);
 			NewViewPath = fileNameProcessor.ApplyVisualRules(NewFullPath);
 
 			isEditing = false;
@@ -136,7 +140,7 @@ namespace AutoRename
 		/// <returns>success or failure</returns>
 		public bool Rename()
 		{
-			if (fileNameProcessor.Rename(OldFullPath, NewFullPath))
+			if (FileNameProcessor.Instance.Rename(OldFullPath, NewFullPath))
 			{
 				return true;
 			}
@@ -170,6 +174,17 @@ namespace AutoRename
 			}
 		}
 
+	    private bool _removeStartingNumber = FileNameProcessor.Instance.RemoveStartingNumber;
+		public bool RemoveStartingNumber
+		{
+			get { return _removeStartingNumber; }
+			set
+			{
+				_removeStartingNumber = value;
+				OnPropertyChanged("RemoveStartingNumber");
+			}
+		}
+
 		/// <summary>
 		/// Value changed through GUI
 		/// </summary>
@@ -192,13 +207,14 @@ namespace AutoRename
 
 				case EditType.UpperCase:
 				case EditType.Brackets:
-					NewFullPath = fileNameProcessor.QRename(OldFullPath, StartWithUpperCase, RemoveBrackets);
-					NewViewPath = fileNameProcessor.ApplyVisualRules(NewFullPath);			
+				case EditType.StartingNumber:
+					NewFullPath = FileNameProcessor.Instance.AutoRename(OldFullPath, StartWithUpperCase, RemoveBrackets, RemoveStartingNumber);
+					NewViewPath = FileNameProcessor.Instance.ApplyVisualRules(NewFullPath);			
 					break;
 
 				case EditType.Visual:
-					OldViewPath = fileNameProcessor.ApplyVisualRules(OldFullPath);
-					NewViewPath = fileNameProcessor.ApplyVisualRules(NewFullPath);
+					OldViewPath = FileNameProcessor.Instance.ApplyVisualRules(OldFullPath);
+					NewViewPath = FileNameProcessor.Instance.ApplyVisualRules(NewFullPath);
 					break;
 			}
 

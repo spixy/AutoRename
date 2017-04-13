@@ -15,7 +15,7 @@ namespace AutoRename
 		    new Tuple<string, string>("{", "}")
 	    };
 
-        public string[] UpperCaseExceptions = { "HD", "HQ", "SD" };
+        public string[] UpperCaseExceptions = { "HD", "HQ", "SD", "DJ" };
 
 		public bool ShowFullPath { get; set; }
 
@@ -23,34 +23,11 @@ namespace AutoRename
 
 		public bool StartWithUpperCase { get; set; }
 
+		public bool RemoveStartingNumber { get; set; }
+
 		public bool RemoveBrackets { get; set; }
 
 		public bool ForceOverwrite { get; set; }
-
-        /// <summary>
-        /// Make each word to start with upper case
-        /// </summary>
-        private string ChangeToUpperCase(string text)
-        {
-            if (string.IsNullOrEmpty(text))
-                return string.Empty;
-
-	        char[] chars = text.ToCharArray();
-
-			StringBuilder sb = new StringBuilder(chars.Length + 1);
-
-			sb.Append(char.ToUpper(chars[0]));
-
-	        for (int i = 1; i < chars.Length; i++)
-	        {
-		        if (chars[i-1] == ' ')
-			        sb.Append(char.ToUpper(chars[i]));
-		        else
-					sb.Append(chars[i]);
-	        }
-
-	        return sb.ToString();
-        }
 
         /// <summary>
         /// Apply visual rules to input file
@@ -59,124 +36,29 @@ namespace AutoRename
         /// <returns></returns>
         public string ApplyVisualRules(string file)
         {
+	        if (file == null)
+	        {
+		        return null;
+	        }
             if (ShowFullPath && ShowExtension)
             {
 	            return file;
             }
-            else if (ShowFullPath)
+            if (ShowFullPath)
             {
                 return Path.GetDirectoryName(file) + Path.DirectorySeparatorChar + Path.GetFileNameWithoutExtension(file);
             }
-            else if (ShowExtension)
+            if (ShowExtension)
             {
                 return Path.GetFileName(file);
             }
-            else
+            // else
             {
                return Path.GetFileNameWithoutExtension(file);
             }
         }
 
 		/// <summary>
-		/// Get new file name
-		/// </summary>
-		/// <param name="file">file path</param>
-		public string QRename(string file)
-		{
-			return QRename(file, StartWithUpperCase, RemoveBrackets);
-		}
-
-		/// <summary>
-		/// Get new file name
-		/// </summary>
-		/// <param name="file">file path</param>
-		/// <param name="startWithUpperCase">custom settings</param>
-		/// <param name="removeBrackets">custom settings</param>
-		/// <returns></returns>
-		public string QRename(string file, bool startWithUpperCase, bool removeBrackets)
-        {
-            string newStr;
-            bool isDirectory = Directory.Exists(file);
-
-            FileInfo fi = new FileInfo(file);
-            string directory = fi.DirectoryName;
-
-            file = Path.GetFileNameWithoutExtension(file);
-
-            char separator = FindSeparator(file);
-
-            switch (separator)
-            {
-                case '-':
-                    newStr = ProcessHyphen(file);
-                    break;
-
-                case '.':
-                    int bodkaIndex = file.LastIndexOf('.');
-                    newStr = file.Replace('.', ' ');
-                    if (!isDirectory && bodkaIndex >= 0)
-                    {
-                        newStr = newStr.ReplaceChar(bodkaIndex, '.');
-                    }
-                    break;
-
-                case ' ':
-                    newStr = file;
-                    break;
-
-                case '%':
-                    newStr = file.Replace("%20", " ");
-                    break;
-
-                default:
-                    newStr = ProcessDefault(file, separator);
-                    break;
-            }
-
-			if (removeBrackets)
-	        {
-		        //TODO: implement via automaton maybe
-		        foreach (var brackets in BracketsList)
-					newStr = RemoveStringInBrackets(newStr, brackets);
-	        }
-
-			if (startWithUpperCase)
-            {
-                newStr = ChangeToUpperCase(newStr);
-            }
-
-			newStr = RemoveMultipleSpaces(newStr).Trim();
-
-			FileInfo fileInfo = new FileInfo(directory + "\\" + newStr + fi.Extension);
-
-            return fileInfo.FullName;
-        }
-
-	    private string RemoveStringInBrackets(string newStr, Tuple<string, string> brackets)
-	    {
-		    int start = 0;
-
-		    do
-		    {
-				int startIndex = newStr.IndexOf(brackets.Item1, start, StringComparison.Ordinal);
-
-			    if (startIndex == -1)
-				    break;
-
-				int endIndex = newStr.IndexOf(brackets.Item2, startIndex, StringComparison.Ordinal);
-
-			    if (endIndex == -1)
-				    break;
-
-				newStr = newStr.Remove(startIndex, endIndex - startIndex + 1);
-			    start = startIndex;
-
-		    } while (true);
-
-		    return newStr;
-	    }
-
-	    /// <summary>
 		/// Try to rename file
 		/// </summary>
 		/// <returns></returns>
@@ -207,14 +89,130 @@ namespace AutoRename
 			return false;
 		}
 
+		/// <summary>
+		/// Get new file name
+		/// </summary>
+		/// <param name="file">file path</param>
+		public string AutoRename(string file)
+		{
+			return AutoRename(file, StartWithUpperCase, RemoveBrackets, RemoveStartingNumber);
+		}
+
+		/// <summary>
+		/// Get new file name
+		/// </summary>
+		/// <param name="file">file path</param>
+		/// <param name="startWithUpperCase">custom settings</param>
+		/// <param name="removeBrackets">custom settings</param>
+		/// <param name="removeStartingNumber">remove 1st number</param>
+		/// <returns></returns>
+		public string AutoRename(string file, bool startWithUpperCase, bool removeBrackets, bool removeStartingNumber)
+		{
+			if (file == null)
+				return null;
+
+            bool isDirectory = Directory.Exists(file);
+
+            string newStr = Path.GetFileNameWithoutExtension(file);
+
+            char separator = FindSeparator(newStr);
+
+	        if (removeStartingNumber && separator != ' ')
+	        {
+		        newStr = RemoveFirstNumber(newStr);
+	        }
+
+            switch (separator)
+            {
+                case '-':
+                    newStr = ProcessHyphen(newStr);
+                    break;
+
+                case '.':
+                    newStr = ProcessDot(newStr, isDirectory);
+		            break;
+
+                case ' ':
+                    break;
+
+                case '%':
+                    newStr = newStr.Replace("%20", " ");
+                    break;
+
+                default:
+                    newStr = ProcessDefault(newStr, separator);
+                    break;
+            }
+
+			if (removeBrackets)
+	        {
+		        //TODO: implement via automaton maybe
+		        foreach (var brackets in BracketsList)
+					newStr = RemoveStringInBrackets(newStr, brackets);
+	        }
+
+			if (startWithUpperCase)
+            {
+                newStr = ChangeToUpperCase(newStr);
+            }
+
+			newStr = RemoveMultipleSpaces(newStr).Trim();
+			
+            FileInfo oldFI = new FileInfo(file);
+			FileInfo newFI = new FileInfo(oldFI.DirectoryName + "\\" + newStr + oldFI.Extension);
+
+            return newFI.FullName;
+        }
+
+	    private string RemoveStringInBrackets(string newStr, Tuple<string, string> brackets)
+	    {
+		    int start = 0;
+
+		    do
+		    {
+				int startIndex = newStr.IndexOf(brackets.Item1, start, StringComparison.Ordinal);
+
+			    if (startIndex == -1)
+				    break;
+
+				int endIndex = newStr.IndexOf(brackets.Item2, startIndex, StringComparison.Ordinal);
+
+			    if (endIndex == -1)
+				    break;
+
+				newStr = newStr.Remove(startIndex, endIndex - startIndex + 1);
+			    start = startIndex;
+
+		    } while (true);
+
+		    return newStr;
+	    }
+
+	    private string RemoveFirstNumber(string newStr)
+	    {
+		    int i = 0;
+
+		    for (; i < newStr.Length; i++)
+		    {
+			    if (!char.IsDigit(newStr, i))
+				    break;
+		    }
+
+		    return newStr.Remove(0, i);
+	    }
+
         private string ProcessHyphen(string file)
         {
+	        bool separatorsOnly = true;
             string newStr = string.Empty;
 
             for (int j = 0; j < file.Length; j++)
             {
                 if (file[j] == '-')
                 {
+	                if (separatorsOnly)
+		                continue;
+
                     if ((j > 0) && (file[j - 1] != newStr[newStr.Length - 1]))
                         newStr += '-';
                     else
@@ -223,10 +221,23 @@ namespace AutoRename
                 else
                 {
                     newStr += file[j];
+	                separatorsOnly = false;
+
                 }
             }
             return newStr;
         }
+
+		private string ProcessDot(string file, bool isDirectory)
+	    {
+		    int dotIndex = file.LastIndexOf('.');
+		    string newStr = file.Replace('.', ' ');
+		    if (!isDirectory && dotIndex >= 0)
+		    {
+			    newStr = newStr.ReplaceChar(dotIndex, '.');
+		    }
+		    return newStr;
+	    }
 
         private string ProcessDefault(string file, char separator)
         {
@@ -251,13 +262,14 @@ namespace AutoRename
             if (str.Contains(" "))
                 return ' ';
 
-	        Dictionary<char, int> values = new Dictionary<char, int>();
+	        Dictionary<char, int> values = new Dictionary<char, int>
+	        {
+		        ['_'] = 0,
+		        ['.'] = 0,
+		        ['-'] = 0,
+		        ['%'] = 0
+	        };
 
-	        values['_'] = 0;
-	        values['.'] = 0;
-	        values['-'] = 0;
-	        values['%'] = 0;
-	        
 	        for (int i = 0; i < str.Length; ++i)
             {
 	            char c = str[i];
@@ -278,6 +290,32 @@ namespace AutoRename
 			}
 
 			return Utility.GetMaxIndex(values, ' ');
+        }
+
+
+		/// <summary>
+        /// Make each word to start with upper case
+        /// </summary>
+        private string ChangeToUpperCase(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return string.Empty;
+
+	        char[] chars = text.ToCharArray();
+
+			StringBuilder sb = new StringBuilder(chars.Length + 1);
+
+			sb.Append(char.ToUpper(chars[0]));
+
+	        for (int i = 1; i < chars.Length; i++)
+	        {
+		        if (chars[i-1] == ' ')
+			        sb.Append(char.ToUpper(chars[i]));
+		        else
+					sb.Append(chars[i]);
+	        }
+
+	        return sb.ToString();
         }
 
         private string RemoveMultipleSpaces(string file)
@@ -303,7 +341,7 @@ namespace AutoRename
                 newFile += s;
             }
 
-            return newFile;
+	        return newFile;
         }
     }
 }

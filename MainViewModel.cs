@@ -15,6 +15,7 @@ namespace AutoRename
 		FileName,
 		UpperCase,
 		Brackets,
+		StartingNumber,
 		Visual
 	}
 
@@ -23,9 +24,7 @@ namespace AutoRename
     /// </summary>
     public class MainViewModel : INotifyPropertyChanged
 	{
-		private static FileNameProcessor fileNameProcessor { get { return FileNameProcessor.Instance; } }
-
-	    public event PropertyChangedEventHandler PropertyChanged = (sender, args) =>
+		public event PropertyChangedEventHandler PropertyChanged = (sender, args) =>
 	    {
 		    MainViewModel model = (MainViewModel) sender;
 
@@ -53,7 +52,16 @@ namespace AutoRename
 					}
 				    break;
 
-			    case "ShowExtension":
+				case "RemoveStartingNumber":
+					{
+						bool value = model.RemoveStartingNumber;
+
+						foreach (var row in model.DataGridRows)
+							row.RemoveStartingNumber = value;
+					}
+				    break;
+
+				case "ShowExtension":
 			    case "ShowFullPath":
 				    foreach (var row in model.DataGridRows)
 					    row.ValuesChanged(EditType.Visual);
@@ -130,10 +138,10 @@ namespace AutoRename
 	    /// </summary>
 	    public bool StartWithUpperCase
 	    {
-			get { return fileNameProcessor.StartWithUpperCase; }
+			get { return FileNameProcessor.Instance.StartWithUpperCase; }
 		    set
 		    {
-				fileNameProcessor.StartWithUpperCase = value;
+				FileNameProcessor.Instance.StartWithUpperCase = value;
 				OnPropertyChanged("StartWithUpperCase");
 		    }
 	    }
@@ -143,24 +151,34 @@ namespace AutoRename
 		/// </summary>
 	    public bool RemoveBrackets
 	    {
-			get { return fileNameProcessor.RemoveBrackets; }
+			get { return FileNameProcessor.Instance.RemoveBrackets; }
 		    set
 			{
-				fileNameProcessor.RemoveBrackets = value;
+				FileNameProcessor.Instance.RemoveBrackets = value;
 			    OnPropertyChanged("RemoveBrackets");
 
 		    }
 	    }
 
-	    /// <summary>
-	    /// Show extension checkbox
-	    /// </summary>
-	    public bool ShowExtension
+		public bool RemoveStartingNumber
+		{
+			get { return FileNameProcessor.Instance.RemoveStartingNumber; }
+			set
+			{
+				FileNameProcessor.Instance.RemoveStartingNumber = value;
+				OnPropertyChanged("RemoveStartingNumber");
+			}
+		}
+
+		/// <summary>
+		/// Show extension checkbox
+		/// </summary>
+		public bool ShowExtension
 	    {
-		    get { return fileNameProcessor.ShowExtension; }
+		    get { return FileNameProcessor.Instance.ShowExtension; }
 		    set
 		    {
-				fileNameProcessor.ShowExtension = value;
+				FileNameProcessor.Instance.ShowExtension = value;
 				OnPropertyChanged("ShowExtension");
 		    }
 	    }
@@ -170,10 +188,10 @@ namespace AutoRename
 	    /// </summary>
 	    public bool ShowFullPath
 	    {
-		    get { return fileNameProcessor.ShowFullPath; }
+		    get { return FileNameProcessor.Instance.ShowFullPath; }
 		    set
 		    {
-				fileNameProcessor.ShowFullPath = value;
+				FileNameProcessor.Instance.ShowFullPath = value;
 				OnPropertyChanged("ShowFullPath");
 		    }
 	    }

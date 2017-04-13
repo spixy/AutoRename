@@ -10,43 +10,48 @@ namespace AutoRename
     /// </summary>
     public partial class MainWindow : Window
     {
-		private static FileNameProcessor fileNameProcessor { get { return FileNameProcessor.Instance; } }
-
-		private readonly MainViewModel model;
-		private bool renameAutomatically = false;
+	    private readonly MainViewModel model;
 
         public MainWindow()
         {
             InitializeComponent();
 
 			model = new MainViewModel();
-	        // bind to UI
+
 			DataContext = model;
 
 			LoadSettings();
         }
 
-        private void LoadArgv()
-        {
-            string[] argv = Environment.GetCommandLineArgs();
+        private void ProcessArgv(ref bool renameAutomatically, ref bool forceOverwrite)
+		{
+			string[] argv = Environment.GetCommandLineArgs();
 
-            for (int i = 1; i < argv.Length; i++)
+			for (int i = 1; i < argv.Length; i++)
             {
 	            string arg = argv[i];
 
-	            switch (arg.ToLower())
+	            switch (arg.ToLower().Replace('/','-'))
 				{
 					case "-b":
 						model.RemoveBrackets = true;
 						continue;
-                    case "-s":
-                        model.StartWithUpperCase = true;
+
+                    case "-s": // deprecated
+					case "-uc":
+						model.StartWithUpperCase = true;
                         continue;
-                    case "-f":
-						fileNameProcessor.ForceOverwrite = true;
-                        continue;
+
+					case "-sn":
+						model.RemoveStartingNumber = true;
+						continue;
+
+					case "-f":
+						forceOverwrite = true;
+						continue;
+
                     case "-y":
-                        renameAutomatically = true;
+						renameAutomatically = true;
                         continue;
                 }
 
@@ -74,7 +79,7 @@ namespace AutoRename
 					{
 						bool val;
 						if (bool.TryParse(lineInLower.Replace("overwrite ", ""), out val))
-							fileNameProcessor.ForceOverwrite = val;
+							FileNameProcessor.Instance.ForceOverwrite = val;
 					}
 
 					if (lineInLower.StartsWith("uppercase "))
@@ -89,6 +94,13 @@ namespace AutoRename
 						bool val;
 						if (bool.TryParse(lineInLower.Replace("remove brackets ", ""), out val))
 							model.RemoveBrackets = val;
+					}
+
+					if (lineInLower.StartsWith("remove starting number "))
+					{
+						bool val;
+						if (bool.TryParse(lineInLower.Replace("remove starting number ", ""), out val))
+							model.RemoveStartingNumber = val;
 					}
 
 					if (lineInLower.StartsWith("extension "))
@@ -141,7 +153,7 @@ namespace AutoRename
 					if (lineInLower.StartsWith("uppercaseexceptions "))
 					{
 						string values = line.Substring("uppercaseexceptions ".Length);
-						fileNameProcessor.UpperCaseExceptions = values.Split('|');
+						FileNameProcessor.Instance.UpperCaseExceptions = values.Split('|');
                     }
                 }
             }
@@ -154,12 +166,15 @@ namespace AutoRename
         private void SaveSettings()
         {
             try
-            {
-                using (StreamWriter sw = new StreamWriter(Properties.Resources.ConfigFile, false))
+			{
+				FileNameProcessor fileNameProcessor = FileNameProcessor.Instance;
+
+				using (StreamWriter sw = new StreamWriter(Properties.Resources.ConfigFile, false))
 				{
 					sw.WriteLine("Overwrite " + fileNameProcessor.ForceOverwrite);
 					sw.WriteLine("Uppercase " + fileNameProcessor.StartWithUpperCase);
 					sw.WriteLine("Remove brackets " + fileNameProcessor.RemoveBrackets);
+					sw.WriteLine("Remove starting number " + fileNameProcessor.RemoveStartingNumber);
                     sw.WriteLine("Extension " + fileNameProcessor.ShowExtension);
 					sw.WriteLine("Full path " + fileNameProcessor.ShowFullPath);
 					sw.WriteLine("Position " + Left + "x" + Top);
@@ -175,7 +190,12 @@ namespace AutoRename
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            LoadArgv();
+			bool renameAutomatically = false;
+	        bool forceOverwrite = false;
+
+			ProcessArgv(ref renameAutomatically, ref forceOverwrite);
+
+			FileNameProcessor.Instance.ForceOverwrite = forceOverwrite;
 
             if (renameAutomatically)
             {
@@ -232,7 +252,15 @@ namespace AutoRename
 			selectedItem.RemoveBrackets = menuItem.IsChecked;
 		}
 
-        private void ClearAll_Click(object sender, RoutedEventArgs e)
+		private void RemoveStartingNumber_Click(object sender, RoutedEventArgs e)
+		{
+			GridRowViewModel selectedItem = model.SelectedItem;
+			MenuItem menuItem = (MenuItem)sender;
+
+			selectedItem.RemoveStartingNumber = menuItem.IsChecked;
+		}
+
+		private void ClearAll_Click(object sender, RoutedEventArgs e)
         {
             model.RemoveAll();
         }
