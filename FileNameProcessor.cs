@@ -6,7 +6,7 @@ using System.Windows;
 
 namespace AutoRename
 {
-	public class FileNameProcessor : Singleton<FileNameProcessor>
+	public class FileNameProcessor
     {
 		private readonly Tuple<string, string>[] BracketsList =
 	    {
@@ -147,7 +147,7 @@ namespace AutoRename
 			if (removeBrackets)
 	        {
 		        //TODO: implement via automaton maybe
-		        foreach (var brackets in BracketsList)
+		        foreach (Tuple<string, string> brackets in this.BracketsList)
 					newStr = RemoveStringInBrackets(newStr, brackets);
 	        }
 

@@ -11,12 +11,15 @@ namespace AutoRename
     public partial class MainWindow : Window
     {
 	    private readonly MainViewModel model;
+		private readonly FileNameProcessor fileNameProcessor;
 
-        public MainWindow()
+		public MainWindow()
         {
             InitializeComponent();
 
-			model = new MainViewModel();
+			fileNameProcessor = new FileNameProcessor();
+
+			model = new MainViewModel(fileNameProcessor);
 
 			DataContext = model;
 
@@ -79,7 +82,7 @@ namespace AutoRename
 					{
 						bool val;
 						if (bool.TryParse(lineInLower.Replace("overwrite ", ""), out val))
-							FileNameProcessor.Instance.ForceOverwrite = val;
+							this.fileNameProcessor.ForceOverwrite = val;
 					}
 
 					if (lineInLower.StartsWith("uppercase "))
@@ -153,7 +156,7 @@ namespace AutoRename
 					if (lineInLower.StartsWith("uppercaseexceptions "))
 					{
 						string values = line.Substring("uppercaseexceptions ".Length);
-						FileNameProcessor.Instance.UpperCaseExceptions = values.Split('|');
+						this.fileNameProcessor.UpperCaseExceptions = values.Split('|');
                     }
                 }
             }
@@ -167,8 +170,6 @@ namespace AutoRename
         {
             try
 			{
-				FileNameProcessor fileNameProcessor = FileNameProcessor.Instance;
-
 				using (StreamWriter sw = new StreamWriter(Properties.Resources.ConfigFile, false))
 				{
 					sw.WriteLine("Overwrite " + fileNameProcessor.ForceOverwrite);
@@ -195,7 +196,7 @@ namespace AutoRename
 
 			ProcessArgv(ref renameAutomatically, ref forceOverwrite);
 
-			FileNameProcessor.Instance.ForceOverwrite = forceOverwrite;
+			this.fileNameProcessor.ForceOverwrite = forceOverwrite;
 
             if (renameAutomatically)
             {

@@ -57,15 +57,14 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="AddFileCommand.cs" />
-    <Compile Include="GridRowViewModel.cs" />
+    <Compile Include="Command\AddFileCommand.cs" />
+    <Compile Include="ViewModel\GridRowViewModel.cs" />
     <Compile Include="FileNameProcessor.cs" />
-    <Compile Include="RenameCommand.cs" />
-    <Compile Include="Singleton.cs" />
+    <Compile Include="Command\RenameCommand.cs" />
     <Compile Include="Updater.cs" />
     <Compile Include="Utility.cs" />
-    <Compile Include="MainViewModel.cs" />
-    <Compile Include="WebsiteCommand.cs" />
+    <Compile Include="ViewModel\MainViewModel.cs" />
+    <Compile Include="Command\WebsiteCommand.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
