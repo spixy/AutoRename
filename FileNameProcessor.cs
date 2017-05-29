@@ -191,10 +191,15 @@ namespace AutoRename
 	    private string RemoveFirstNumber(string newStr)
 	    {
 		    int i = 0;
+		    int strLength = newStr.Length;
 
-		    for (; i < newStr.Length; i++)
+		    for (; i < strLength; i++)
 		    {
-			    if (!char.IsDigit(newStr, i))
+			    if (char.IsDigit(newStr, i))
+					continue;
+
+				// char is not digit
+			    if (i == 0 || newStr[i] != '.')
 				    break;
 		    }
 
