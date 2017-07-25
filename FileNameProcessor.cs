@@ -32,8 +32,6 @@ namespace AutoRename
         /// <summary>
         /// Apply visual rules to input file
         /// </summary>
-        /// <param name="file"></param>
-        /// <returns></returns>
         public string ApplyVisualRules(string file)
         {
 	        if (file == null)
@@ -61,7 +59,6 @@ namespace AutoRename
 		/// <summary>
 		/// Try to rename file
 		/// </summary>
-		/// <returns></returns>
 		public bool Rename(string from, string to)
 		{
 			if (from == to)
@@ -105,19 +102,15 @@ namespace AutoRename
 		/// <param name="startWithUpperCase">custom settings</param>
 		/// <param name="removeBrackets">custom settings</param>
 		/// <param name="removeStartingNumber">remove 1st number</param>
-		/// <returns></returns>
 		public string AutoRename(string file, bool startWithUpperCase, bool removeBrackets, bool removeStartingNumber)
 		{
 			if (file == null)
 				return null;
 
-            bool isDirectory = Directory.Exists(file);
-
             string newStr = Path.GetFileNameWithoutExtension(file);
-
             char separator = FindSeparator(newStr);
 
-	        if (removeStartingNumber && separator != ' ')
+	        if (removeStartingNumber)
 	        {
 		        newStr = RemoveFirstNumber(newStr);
 	        }
@@ -129,7 +122,8 @@ namespace AutoRename
                     break;
 
                 case '.':
-                    newStr = ProcessDot(newStr, isDirectory);
+	                bool isDirectory = Directory.Exists(file);
+					newStr = ProcessDot(newStr, isDirectory);
 		            break;
 
                 case ' ':
@@ -164,6 +158,9 @@ namespace AutoRename
             return newFI.FullName;
         }
 
+		/// <summary>
+		/// Remove text in brackets
+		/// </summary>
 	    private string RemoveStringInBrackets(string newStr, Tuple<string, string> brackets)
 	    {
 		    int start = 0;
@@ -188,6 +185,9 @@ namespace AutoRename
 		    return newStr;
 	    }
 
+		/// <summary>
+		/// Remove number in the beginning of text
+		/// </summary>
 	    private string RemoveFirstNumber(string newStr)
 	    {
 		    int i = 0;
@@ -206,6 +206,9 @@ namespace AutoRename
 		    return newStr.Remove(0, i);
 	    }
 
+		/// <summary>
+		/// Separator is '-'
+		/// </summary>
         private string ProcessHyphen(string file)
         {
 	        bool separatorsOnly = true;
@@ -233,6 +236,9 @@ namespace AutoRename
             return newStr;
         }
 
+	    /// <summary>
+	    /// Separator is '.'
+	    /// </summary>
 		private string ProcessDot(string file, bool isDirectory)
 	    {
 		    int dotIndex = file.LastIndexOf('.');
@@ -244,7 +250,10 @@ namespace AutoRename
 		    return newStr;
 	    }
 
-        private string ProcessDefault(string file, char separator)
+	    /// <summary>
+	    /// Separator unknown
+	    /// </summary>
+		private string ProcessDefault(string file, char separator)
         {
             string newStr = file.Replace(separator, ' ');
 
@@ -262,6 +271,9 @@ namespace AutoRename
             return newStr;
         }
 
+		/// <summary>
+		/// Find separator between words
+		/// </summary>
         private char FindSeparator(string str)
         {
             if (str.Contains(" "))
@@ -323,6 +335,9 @@ namespace AutoRename
 	        return sb.ToString();
         }
 
+		/// <summary>
+		/// Remove spaces next to each other
+		/// </summary>
         private string RemoveMultipleSpaces(string file)
         {
             string newFile = string.Empty;

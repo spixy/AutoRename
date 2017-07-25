@@ -108,8 +108,7 @@ namespace AutoRename
             {
 	            string name = Utility.CurrentApplication.Name;
 	            Version version = Utility.CurrentApplication.Version;
-
-				return name + " " + version.Major + "." + version.Minor + (version.Build > 0 ? "." + version.Build : "");
+	            return $"{name} {version.Major}.{version.Minor}{(version.Build > 0 ? "." + version.Build : "")}";
             }
         }
 
@@ -308,7 +307,6 @@ namespace AutoRename
 		    {
 			    GridRowViewModel newRow = new GridRowViewModel(this, file, fileNameProcessor);
 			    DataGridRows.Add(newRow);
-
 			    CheckGuiStates();
 		    }
 		    catch
@@ -360,9 +358,7 @@ namespace AutoRename
 		    for (int i = list.Count - 1; i >= 0; i--)
 		    {
 			    GridRowViewModel row = list[i];
-
 			    bool result = row.Rename();
-
 			    DataGridRows.Remove(row);
 
 			    success &= result;
