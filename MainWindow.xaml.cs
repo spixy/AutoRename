@@ -29,6 +29,7 @@ namespace AutoRename
         private void ProcessArgv(ref bool renameAutomatically, ref bool forceOverwrite)
 		{
 			string[] argv = Environment.GetCommandLineArgs();
+			bool showHelpBox = false;
 
 			for (int i = 1; i < argv.Length; i++)
             {
@@ -38,34 +39,50 @@ namespace AutoRename
 				{
 					case "-b":
 						model.RemoveBrackets = true;
-						continue;
+						break;
 
-                    case "-s": // deprecated
 					case "-uc":
 						model.StartWithUpperCase = true;
-                        continue;
+						break;
 
 					case "-sn":
 						model.RemoveStartingNumber = true;
-						continue;
+						break;
 
 					case "-f":
 						forceOverwrite = true;
-						continue;
+						break;
 
                     case "-y":
 						renameAutomatically = true;
-                        continue;
-                }
+	                    break;
 
-                if (Utility.ItemExists(arg))
-                {
-					model.AddFile(arg);
-                }
+					case "/?":
+					case "-help":
+					case "--help":
+						showHelpBox = true;
+						break;
+
+					default:
+						if (Utility.ItemExists(arg))
+						{
+							model.AddFile(arg);
+						}
+						else
+						{
+							showHelpBox = true;
+						}
+						break;
+				}
             }
-        }
 
-        private void LoadSettings()
+			if (showHelpBox)
+			{
+				MessageBox.Show(Properties.Resources.CmdParametersHelp, "Command line parameters", MessageBoxButton.OK, MessageBoxImage.Information);
+			}
+		}
+
+		private void LoadSettings()
         {
             if (!File.Exists(Properties.Resources.ConfigFile))
                 return;
@@ -74,99 +91,70 @@ namespace AutoRename
             {
                 string[] lines = File.ReadAllLines(Properties.Resources.ConfigFile);
 
-                foreach (string line in lines)
+				bool boolValue;
+				string strValue;
+				Point vec2Value;
+
+				foreach (string line in lines)
                 {
 					string lineInLower = line.ToLowerInvariant();
 
-					if (lineInLower.StartsWith("overwrite "))
+					if (Utility.TryGetBoolValue(lineInLower, "overwrite", out boolValue))
 					{
-						bool val;
-						if (bool.TryParse(lineInLower.Replace("overwrite ", ""), out val))
-							this.fileNameProcessor.ForceOverwrite = val;
+						this.fileNameProcessor.ForceOverwrite = boolValue;
 					}
-
-					if (lineInLower.StartsWith("uppercase "))
-                    {
-                        bool val;
-						if (bool.TryParse(lineInLower.Replace("uppercase ", ""), out val))
-                            model.StartWithUpperCase = val;
-                    }
-
-					if (lineInLower.StartsWith("remove brackets "))
+					else if (Utility.TryGetBoolValue(lineInLower, "uppercase", out boolValue))
 					{
-						bool val;
-						if (bool.TryParse(lineInLower.Replace("remove brackets ", ""), out val))
-							model.RemoveBrackets = val;
+						this.model.StartWithUpperCase = boolValue;
 					}
-
-					if (lineInLower.StartsWith("remove starting number "))
-					{
-						bool val;
-						if (bool.TryParse(lineInLower.Replace("remove starting number ", ""), out val))
-							model.RemoveStartingNumber = val;
+					else if (Utility.TryGetBoolValue(lineInLower, "remove brackets", out boolValue))
+	                {
+		                this.model.RemoveBrackets = boolValue;
 					}
-
-					if (lineInLower.StartsWith("extension "))
-                    {
-                        bool val;
-						if (bool.TryParse(lineInLower.Replace("extension ", ""), out val))
-                            model.ShowExtension = val;
-                    }
-
-					if (lineInLower.StartsWith("full path "))
-                    {
-                        bool val;
-                        if (bool.TryParse(lineInLower.Replace("full path ", ""), out val))
-                            model.ShowFullPath = val;
-                    }
-
-					if (lineInLower.StartsWith("position "))
+	                else if (Utility.TryGetBoolValue(lineInLower, "remove starting number", out boolValue))
 					{
-						string[] vals = lineInLower.Replace("position ", "").Split('x');
-
-						if (vals.Length == 2)
-						{
-							double x, y;
-
-							if (double.TryParse(vals[0], out x) && double.TryParse(vals[1], out y))
-							{
-								Rect screen = SystemParameters.WorkArea;
-								Left = Utility.Clamp(x, screen.Left, screen.Right);
-								Top = Utility.Clamp(y, screen.Top, screen.Bottom);
-							}
-						}
+						this.model.RemoveStartingNumber = boolValue;
 					}
-
-					if (lineInLower.StartsWith("window "))
+					else if (Utility.TryGetBoolValue(lineInLower, "extension", out boolValue))
+	                {
+		                this.model.ShowExtension = boolValue;
+					}
+					else if (Utility.TryGetBoolValue(lineInLower, "full path", out boolValue))
 					{
-						string[] vals = lineInLower.Replace("window ", "").Split('x');
-
-						if (vals.Length == 2)
-	                    {
-							double w, h;
-
-							if (double.TryParse(vals[0], out w) && double.TryParse(vals[1], out h))
-							{
-								Width = w;
-								Height = h;
-							}
-	                    }
-                    }
-
-					if (lineInLower.StartsWith("uppercaseexceptions "))
+						this.model.ShowFullPath = boolValue;
+					}
+					else if (Utility.TryGetBoolValue(lineInLower, "grid lines", out boolValue))
+	                {
+		                this.model.ShowGridLines = boolValue;
+					}
+					else if (Utility.TryGetBoolValue(lineInLower, "position", out boolValue))
 					{
-						string values = line.Substring("uppercaseexceptions ".Length);
-						this.fileNameProcessor.UpperCaseExceptions = values.Split('|');
-                    }
+						this.model.ShowGridLines = boolValue;
+					}
+					else if (Utility.TryGetVec2Value(lineInLower, "position", out vec2Value))
+	                {
+		                Rect screen = SystemParameters.WorkArea;
+		                Left = Utility.Clamp(vec2Value.X, screen.Left, screen.Right);
+		                Top = Utility.Clamp(vec2Value.Y, screen.Top, screen.Bottom);
+					}
+					else if (Utility.TryGetVec2Value(lineInLower, "window", out vec2Value))
+					{
+						Width = vec2Value.X;
+						Height = vec2Value.Y;
+					}
+					else if (Utility.TryGetStringValue(lineInLower, "uppercaseexceptions", out strValue))
+					{
+						this.fileNameProcessor.UpperCaseExceptions = strValue.Split('|');
+	                }
                 }
-            }
-            catch
-            {
-                // ignored
-            }
-        }
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message, "Cannot load preferences", MessageBoxButton.OK, MessageBoxImage.Error);
+			}
+		}
 
-        private void SaveSettings()
+		private void SaveSettings()
         {
             try
 			{
@@ -178,14 +166,15 @@ namespace AutoRename
 					sw.WriteLine("Remove starting number " + fileNameProcessor.RemoveStartingNumber);
                     sw.WriteLine("Extension " + fileNameProcessor.ShowExtension);
 					sw.WriteLine("Full path " + fileNameProcessor.ShowFullPath);
+					sw.WriteLine("Grid lines " + model.ShowGridLines);
 					sw.WriteLine("Position " + Left + "x" + Top);
                     sw.WriteLine("Window " + Width + "x" + Height);
                     sw.WriteLine("UpperCaseExceptions " + string.Join("|", fileNameProcessor.UpperCaseExceptions));
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // ignored
+	            MessageBox.Show(ex.Message, "Cannot save preferences", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

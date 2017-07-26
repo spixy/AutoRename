@@ -203,10 +203,25 @@ namespace AutoRename
 		    }
 	    }
 
+
 	    /// <summary>
-	    /// Rename button
+	    /// Show full path checkbox
 	    /// </summary>
-	    private RenameCommand renameButtonCommand;
+	    private bool showGridLines;
+	    public bool ShowGridLines
+	    {
+		    get { return showGridLines; }
+		    set
+		    {
+			    showGridLines = value;
+			    OnPropertyChanged("ShowGridLines");
+		    }
+	    }
+
+		/// <summary>
+		/// Rename button
+		/// </summary>
+		private RenameCommand renameButtonCommand;
 	    public ICommand RenameButtonClick
 	    {
 		    get

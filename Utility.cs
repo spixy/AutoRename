@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Windows;
 
 namespace AutoRename
 {
@@ -87,5 +88,75 @@ namespace AutoRename
 		{
 			return (value < min) ? min : (value > max) ? max : value;
 		}
-    }
+
+		/// <summary>
+		/// Get bool value
+		/// </summary>
+		/// <param name="str">string to parse in format "%key% %value%"</param>
+		/// <param name="key">key</param>
+		/// <param name="value">value</param>
+		/// <returns>If key-value pair exists and is valid</returns>
+		public static bool TryGetBoolValue(string str, string key, out bool value)
+	    {
+		    if (str.IndexOf(key) == 0)
+		    {
+			    bool val;
+			    if (bool.TryParse(str.Substring(key.Length + 1), out val))
+			    {
+				    value = val;
+				    return true;
+			    }
+		    }
+
+		    value = false;
+		    return false;
+	    }
+
+		/// <summary>
+		/// Get string value
+		/// </summary>
+		/// <param name="str">string to parse in format "%key% %value%"</param>
+		/// <param name="key">key</param>
+		/// <param name="value">value</param>
+		/// <returns>If key-value pair exists and is valid</returns>
+		public static bool TryGetStringValue(string str, string key, out string value)
+	    {
+		    if (str.IndexOf(key) == 0)
+		    {
+			    value = str.Substring(key.Length + 1);
+			    return true;
+		    }
+
+		    value = null;
+		    return false;
+	    }
+
+		/// <summary>
+		/// Get Vector2 value
+		/// </summary>
+		/// <param name="str">string to parse in format "%key% %value%"</param>
+		/// <param name="key">key</param>
+		/// <param name="value">value</param>
+		/// <returns>If key-value pair exists and is valid</returns>
+		public static bool TryGetVec2Value(string str, string key, out Point value)
+	    {
+		    if (str.IndexOf(key) == 0)
+		    {
+			    string[] vals = str.Substring(key.Length + 1).Split('x');
+			    if (vals.Length == 2)
+			    {
+				    double x, y;
+
+				    if (double.TryParse(vals[0], out x) && double.TryParse(vals[1], out y))
+				    {
+					    value = new Point(x, y);
+					    return true;
+				    }
+			    }
+		    }
+
+		    value = new Point();
+		    return false;
+	    }
+	}
 }

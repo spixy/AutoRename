@@ -35,16 +35,17 @@
 				<TextBlock Text="{Binding Path=WebsiteButton}" FontSize="14" TextAlignment="Center"/>
             </Button>
 
-			<CheckBox Grid.Column="2" Grid.Row="1" Content="Words start with upper case" IsChecked="{Binding Path=StartWithUpperCase, Mode=TwoWay}" Margin="10,0,0,0"/>
-			<CheckBox Grid.Column="2" Grid.Row="2" Content="Remove brackets" IsChecked="{Binding Path=RemoveBrackets, Mode=TwoWay}" Margin="10,0,0,0"/>
-			<CheckBox Grid.Column="2" Grid.Row="3" Content="Remove starting number" IsChecked="{Binding Path=RemoveStartingNumber, Mode=TwoWay}" Margin="10,0,0,0"/>
+			<CheckBox Grid.Column="2" Grid.Row="1" Content="Words start with upper case" IsChecked="{Binding Path=StartWithUpperCase, Mode=TwoWay}" Margin="10,1,0,0"/>
+			<CheckBox Grid.Column="2" Grid.Row="2" Content="Remove brackets" IsChecked="{Binding Path=RemoveBrackets, Mode=TwoWay}" Margin="10,1,0,0"/>
+			<CheckBox Grid.Column="2" Grid.Row="3" Content="Remove starting number" IsChecked="{Binding Path=RemoveStartingNumber, Mode=TwoWay}" Margin="10,1,0,0"/>
 
-			<CheckBox Grid.Column="3" Grid.Row="1" Content="Show file extension" IsChecked="{Binding Path=ShowExtension, Mode=TwoWay}" Margin="10,0,0,0"/>
-			<CheckBox Grid.Column="3" Grid.Row="2" Content="Show full path" IsChecked="{Binding Path=ShowFullPath, Mode=TwoWay}" Margin="10,0,0,0"/>
+			<CheckBox Grid.Column="3" Grid.Row="1" Content="Show file extension" IsChecked="{Binding Path=ShowExtension, Mode=TwoWay}" Margin="10,1,0,0"/>
+			<CheckBox Grid.Column="3" Grid.Row="2" Content="Show full path" IsChecked="{Binding Path=ShowFullPath, Mode=TwoWay}" Margin="10,1,0,0"/>
+			<CheckBox Grid.Column="3" Grid.Row="3" Content="Show grid lines" IsChecked="{Binding Path=ShowGridLines, Mode=TwoWay}" Margin="10,1,0,0"/>
 		</Grid>
 		
 		<DataGrid Grid.Row="1" Name="DataGrid" ItemsSource="{Binding Path=DataGridRows, Mode=TwoWay}" SelectedItem="{Binding Path=SelectedItem, Mode=TwoWay}"
-                      AutoGenerateColumns="False" SelectionMode="Single" SelectionUnit="FullRow" HorizontalScrollBarVisibility="Disabled" GridLinesVisibility="None"
+                      AutoGenerateColumns="False" SelectionMode="Single" SelectionUnit="FullRow" HorizontalScrollBarVisibility="Disabled" GridLinesVisibility="All"
                       CanUserAddRows="False" CanUserDeleteRows="True" CanUserResizeRows="False"
                       CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="False" Background="{x:Null}">
 

@@ -61,6 +61,19 @@ namespace AutoRename.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to -b  remove brackets
+        ///-uc start with upper case
+        ///-sn remove starting number
+        ///-f  force overwrite
+        ///-y  automatically rename files and closes.
+        /// </summary>
+        internal static string CmdParametersHelp {
+            get {
+                return ResourceManager.GetString("CmdParametersHelp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to config.ini.
         /// </summary>
         internal static string ConfigFile {
