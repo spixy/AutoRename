@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Windows;
@@ -40,22 +39,6 @@ namespace AutoRename
 		        index = defaultIndex;
 
             return index;
-        }
-
-        /// <summary>
-        /// Check if array contains string
-        /// </summary>
-        public static bool IsStringInArray(this string[] strArray, string key, bool caseSensitive)
-        {
-            StringComparison comparison = (caseSensitive) ? StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase;
-
-            foreach (string str in strArray)
-            {
-                if (string.Equals(str, key, comparison))
-                    return true;
-            }
-
-            return false;
         }
 
         /// <summary>
@@ -109,25 +92,6 @@ namespace AutoRename
 		    }
 
 		    value = false;
-		    return false;
-	    }
-
-		/// <summary>
-		/// Get string value
-		/// </summary>
-		/// <param name="str">string to parse in format "%key% %value%"</param>
-		/// <param name="key">key</param>
-		/// <param name="value">value</param>
-		/// <returns>If key-value pair exists and is valid</returns>
-		public static bool TryGetStringValue(string str, string key, out string value)
-	    {
-		    if (str.IndexOf(key) == 0)
-		    {
-			    value = str.Substring(key.Length + 1);
-			    return true;
-		    }
-
-		    value = null;
 		    return false;
 	    }
 

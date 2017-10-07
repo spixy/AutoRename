@@ -57,7 +57,11 @@ namespace AutoRename
 						renameAutomatically = true;
 	                    break;
 
-					case "/?":
+				    case "-e":
+				        model.ExitAfterRename = true;
+				        break;
+
+                    case "/?":
 					case "-help":
 					case "--help":
 						showHelpBox = true;
@@ -90,7 +94,6 @@ namespace AutoRename
             try
             {
                 string[] lines = File.ReadAllLines(Properties.Resources.ConfigFile);
-
 				bool boolValue;
 				string strValue;
 				Point vec2Value;
@@ -127,25 +130,21 @@ namespace AutoRename
 	                {
 		                this.model.ShowGridLines = boolValue;
 					}
-					else if (Utility.TryGetBoolValue(lineInLower, "position", out boolValue))
+					else if (Utility.TryGetBoolValue(lineInLower, "Exit after rename", out boolValue))
 					{
-						this.model.ShowGridLines = boolValue;
+					    this.model.ExitAfterRename = boolValue;
 					}
-					else if (Utility.TryGetVec2Value(lineInLower, "position", out vec2Value))
+                    else if (Utility.TryGetVec2Value(lineInLower, "position", out vec2Value))
 	                {
 		                Rect screen = SystemParameters.WorkArea;
-		                Left = Utility.Clamp(vec2Value.X, screen.Left, screen.Right);
-		                Top = Utility.Clamp(vec2Value.Y, screen.Top, screen.Bottom);
+	                    this.Left = Utility.Clamp(vec2Value.X, screen.Left, screen.Right);
+	                    this.Top = Utility.Clamp(vec2Value.Y, screen.Top, screen.Bottom);
 					}
 					else if (Utility.TryGetVec2Value(lineInLower, "window", out vec2Value))
 					{
-						Width = vec2Value.X;
-						Height = vec2Value.Y;
+						this.Width = vec2Value.X;
+					    this.Height = vec2Value.Y;
 					}
-					else if (Utility.TryGetStringValue(lineInLower, "uppercaseexceptions", out strValue))
-					{
-						this.fileNameProcessor.UpperCaseExceptions = strValue.Split('|');
-	                }
                 }
 			}
 			catch (Exception ex)
@@ -164,12 +163,12 @@ namespace AutoRename
 					sw.WriteLine("Uppercase " + fileNameProcessor.StartWithUpperCase);
 					sw.WriteLine("Remove brackets " + fileNameProcessor.RemoveBrackets);
 					sw.WriteLine("Remove starting number " + fileNameProcessor.RemoveStartingNumber);
-                    sw.WriteLine("Extension " + fileNameProcessor.ShowExtension);
-					sw.WriteLine("Full path " + fileNameProcessor.ShowFullPath);
+                    sw.WriteLine("Extension " + model.ShowExtension);
+					sw.WriteLine("Full path " + model.ShowFullPath);
 					sw.WriteLine("Grid lines " + model.ShowGridLines);
+                    sw.WriteLine("Exit after rename " + model.ExitAfterRename);
 					sw.WriteLine("Position " + Left + "x" + Top);
                     sw.WriteLine("Window " + Width + "x" + Height);
-                    sw.WriteLine("UpperCaseExceptions " + string.Join("|", fileNameProcessor.UpperCaseExceptions));
                 }
             }
             catch (Exception ex)
@@ -183,13 +182,13 @@ namespace AutoRename
 			bool renameAutomatically = false;
 	        bool forceOverwrite = false;
 
-			ProcessArgv(ref renameAutomatically, ref forceOverwrite);
+            ProcessArgv(ref renameAutomatically, ref forceOverwrite);
 
 			this.fileNameProcessor.ForceOverwrite = forceOverwrite;
 
             if (renameAutomatically)
             {
-				model.RenameAll();
+                model.RenameAll();
             }
             else
             {
@@ -231,7 +230,6 @@ namespace AutoRename
 			MenuItem menuItem = (MenuItem) sender;
 
 			selectedItem.StartWithUpperCase = menuItem.IsChecked;
-
 		}
 
 		private void RemoveBrackets_Click(object sender, RoutedEventArgs e)
@@ -250,7 +248,23 @@ namespace AutoRename
 			selectedItem.RemoveStartingNumber = menuItem.IsChecked;
 		}
 
-		private void ClearAll_Click(object sender, RoutedEventArgs e)
+        private void ShowFileExtension_Click(object sender, RoutedEventArgs e)
+        {
+            GridRowViewModel selectedItem = model.SelectedItem;
+            MenuItem menuItem = (MenuItem)sender;
+
+            selectedItem.ShowExtension = menuItem.IsChecked;
+        }
+
+        private void ShowFullPath_Click(object sender, RoutedEventArgs e)
+        {
+            GridRowViewModel selectedItem = model.SelectedItem;
+            MenuItem menuItem = (MenuItem)sender;
+
+            selectedItem.ShowFullPath = menuItem.IsChecked;
+        }
+
+        private void ClearAll_Click(object sender, RoutedEventArgs e)
         {
             model.RemoveAll();
         }

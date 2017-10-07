@@ -12,14 +12,9 @@ namespace AutoRename
 	    {
 		    new Tuple<string, string>("(", ")"),
 		    new Tuple<string, string>("[", "]"),
-		    new Tuple<string, string>("{", "}")
-	    };
-
-        public string[] UpperCaseExceptions = { "HD", "HQ", "SD", "DJ" };
-
-		public bool ShowFullPath { get; set; }
-
-		public bool ShowExtension { get; set; }
+            new Tuple<string, string>("{", "}"),
+	        new Tuple<string, string>("<", ">")
+        };
 
 		public bool StartWithUpperCase { get; set; }
 
@@ -32,7 +27,7 @@ namespace AutoRename
         /// <summary>
         /// Apply visual rules to input file
         /// </summary>
-        public string ApplyVisualRules(string file)
+        public string ApplyVisualRules(string file, bool ShowExtension, bool ShowFullPath)
         {
 	        if (file == null)
 	        {
@@ -62,7 +57,7 @@ namespace AutoRename
 		public bool Rename(string from, string to)
 		{
 			if (from == to)
-				return true;
+				throw new Exception("New file name must be different");
 
 			if (!ForceOverwrite && File.Exists(to))
 			{
@@ -70,20 +65,8 @@ namespace AutoRename
 					return false;
 			}
 
-			if (Utility.ItemExists(from))
-			{
-				try
-				{
-					Directory.Move(from, to);
-					return true;
-				}
-				catch
-				{
-					// ignored
-				}
-			}	
-			
-			return false;
+		    Directory.Move(from, to);
+		    return true;
 		}
 
 		/// <summary>

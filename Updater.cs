@@ -14,10 +14,10 @@ namespace AutoRename
         /// <summary>
         /// File with latest application version
         /// </summary>
-        public string UpdateFile { get; set; }
+        public string UpdateFile { get; }
 
         /// <summary>
-        /// Asynchronious action occurs when update is available after calling IsUpdateAvailableAsync()
+        /// Asynchronous action occurs when update is available after calling IsUpdateAvailableAsync()
         /// </summary>
         public Action UpdateAvailableAction { get; set; }
 
@@ -37,13 +37,13 @@ namespace AutoRename
         {
             BackgroundWorker bw = new BackgroundWorker();
             bw.DoWork += IsUpdateAvailableBackground;
-            bw.RunWorkerCompleted += bw_RunWorkerCompleted;
+            bw.RunWorkerCompleted += Bw_RunWorkerCompleted;
             bw.RunWorkerAsync();
         }
 
-        private void bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        private void Bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            if (((bool)e.Result) && UpdateAvailableAction != null)
+            if ((bool)e.Result && UpdateAvailableAction != null)
             {
                 UpdateAvailableAction();
             }

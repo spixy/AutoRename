@@ -6,7 +6,7 @@ Automatically changes file names to human-friendly names
  * Removes track number (optionable)
 
 ### Download
-[v2.5 (zip)](https://github.com/spixy/AutoRename/releases/download/2.5/AutoRename.zip)
+[v2.6 (zip)](https://github.com/spixy/AutoRename/releases/download/2.6/AutoRename.zip)
 
 ### Screenshots
 ![image](https://user-images.githubusercontent.com/4542110/26934335-5dfd457a-4c69-11e7-8bb2-5a922f30e7b7.jpg)

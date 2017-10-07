@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Media;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 
 namespace AutoRename
@@ -38,42 +39,46 @@ namespace AutoRename
 
 		    switch (args.PropertyName)
 		    {
-			    case "SelectedItem":
-				    model.CheckGuiStates();
-				    break;
-
+		        case "SelectedItem":
+		        {
+		            model.CheckGuiStates();
+		            break;
+                }
 			    case "StartWithUpperCase":
-					{
-						bool value = model.StartWithUpperCase;
-
-						foreach (var row in model.DataGridRows)
-							row.StartWithUpperCase = value;
-					}
-				    break;
-
+				{
+					bool value = model.StartWithUpperCase;
+					foreach (var row in model.DataGridRows)
+						row.StartWithUpperCase = value;
+					break;
+                }
 			    case "RemoveBrackets":
-					{
-						bool value = model.RemoveBrackets;
-
-						foreach (var row in model.DataGridRows)
-						    row.RemoveBrackets = value;
-					}
-				    break;
-
+				{
+					bool value = model.RemoveBrackets;
+					foreach (var row in model.DataGridRows)
+						row.RemoveBrackets = value;
+					break;
+                }
 				case "RemoveStartingNumber":
-					{
-						bool value = model.RemoveStartingNumber;
-
-						foreach (var row in model.DataGridRows)
-							row.RemoveStartingNumber = value;
-					}
-				    break;
-
-				case "ShowExtension":
-			    case "ShowFullPath":
-				    foreach (var row in model.DataGridRows)
-					    row.ValuesChanged(EditType.Visual);
-				    break;
+				{
+					bool value = model.RemoveStartingNumber;
+					foreach (var row in model.DataGridRows)
+						row.RemoveStartingNumber = value;
+					break;
+		        }
+		        case "ShowFullPath":
+		        {
+		            bool value = model.showFullPath;
+		            foreach (var row in model.DataGridRows)
+		                row.ShowFullPath = value;
+                    break;
+		        }
+		        case "ShowExtension":
+		        {
+		            bool value = model.ShowExtension;
+		            foreach (var row in model.DataGridRows)
+		                row.ShowExtension = value;
+                        break;
+                }
 		    }
 	    };
 
@@ -177,32 +182,33 @@ namespace AutoRename
 			}
 		}
 
-		/// <summary>
-		/// Show extension checkbox
-		/// </summary>
-		public bool ShowExtension
+        /// <summary>
+        /// Show extension checkbox
+        /// </summary>
+        private bool showExtension;
+        public bool ShowExtension
 	    {
-		    get { return fileNameProcessor.ShowExtension; }
+		    get { return showExtension; }
 		    set
 		    {
-				fileNameProcessor.ShowExtension = value;
+		        showExtension = value;
 				OnPropertyChanged("ShowExtension");
 		    }
 	    }
 
-	    /// <summary>
-	    /// Show full path checkbox
-	    /// </summary>
-	    public bool ShowFullPath
+        /// <summary>
+        /// Show full path checkbox
+        /// </summary>
+        private bool showFullPath;
+        public bool ShowFullPath
 	    {
-		    get { return fileNameProcessor.ShowFullPath; }
+		    get { return showFullPath; }
 		    set
 		    {
-				fileNameProcessor.ShowFullPath = value;
+		        showFullPath = value;
 				OnPropertyChanged("ShowFullPath");
 		    }
 	    }
-
 
 	    /// <summary>
 	    /// Show full path checkbox
@@ -210,18 +216,38 @@ namespace AutoRename
 	    private bool showGridLines;
 	    public bool ShowGridLines
 	    {
-		    get { return showGridLines; }
+		    get { return this.showGridLines; }
 		    set
 		    {
-			    showGridLines = value;
+		        this.showGridLines = value;
 			    OnPropertyChanged("ShowGridLines");
-		    }
+		        OnPropertyChanged("GridLinesVisibility");
+            }
 	    }
 
-		/// <summary>
-		/// Rename button
-		/// </summary>
-		private RenameCommand renameButtonCommand;
+        public DataGridGridLinesVisibility GridLinesVisibility
+        {
+            get { return this.ShowGridLines ? DataGridGridLinesVisibility.All : DataGridGridLinesVisibility.None; }
+        }
+
+        /// <summary>
+        /// Show full path checkbox
+        /// </summary>
+        private bool exitAfterRename;
+        public bool ExitAfterRename
+        {
+            get { return this.exitAfterRename; }
+            set
+            {
+                this.exitAfterRename = value;
+                OnPropertyChanged("ExitAfterRename");
+            }
+        }
+
+        /// <summary>
+        /// Rename button
+        /// </summary>
+        private RenameCommand renameButtonCommand;
 	    public ICommand RenameButtonClick
 	    {
 		    get
@@ -364,24 +390,30 @@ namespace AutoRename
 	    public void RenameAll()
 	    {
 		    var list = DataGridRows;
+	        int listCount = list.Count;
 
-		    if (DataGridRows.Count == 0)
+            if (listCount == 0)
 			    return;
 
 		    bool success = true;
 
-		    for (int i = list.Count - 1; i >= 0; i--)
+	        for (int i = 0; i < listCount; i++)
 		    {
 			    GridRowViewModel row = list[i];
-			    bool result = row.Rename();
-			    DataGridRows.Remove(row);
-
-			    success &= result;
+			    bool renamed = row.Rename();
+		        if (renamed)
+		        {
+		            DataGridRows.Remove(row);
+                }
+			    success &= renamed;
 		    }
 
 		    if (success)
 		    {
-			    Application.Current.Shutdown();
+		        if (ExitAfterRename)
+		        {
+		            Application.Current.Shutdown();
+                }
 		    }
 		    else
 		    {

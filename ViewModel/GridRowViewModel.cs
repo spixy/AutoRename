@@ -1,5 +1,8 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
+using System.Windows;
 using System.Windows.Media;
 
 namespace AutoRename
@@ -38,7 +41,12 @@ namespace AutoRename
 				case "RemoveStartingNumber":
 					model.ValuesChanged(EditType.StartingNumber);
 					break;
-			}
+
+			    case "ShowExtension":
+			    case "ShowFullPath":
+                    model.ValuesChanged(EditType.Visual);
+			        break;
+            }
 		};
 
 		private void OnPropertyChanged(string propertyName)
@@ -57,16 +65,18 @@ namespace AutoRename
 			isEditing = true;
 
 			OldFullPath = file;
-			OldViewPath = fileNameProcessor.ApplyVisualRules(OldFullPath);
+			OldViewPath = fileNameProcessor.ApplyVisualRules(OldFullPath, ShowExtension, ShowFullPath);
 			NewFullPath = fileNameProcessor.AutoRename(OldFullPath);
-			NewViewPath = fileNameProcessor.ApplyVisualRules(NewFullPath);
+			NewViewPath = fileNameProcessor.ApplyVisualRules(NewFullPath, ShowExtension, ShowFullPath);
 
 			isEditing = false;
 
 			this.startWithUpperCase = fileNameProcessor.StartWithUpperCase;
 			this.removeBrackets = fileNameProcessor.RemoveBrackets;
 			this.removeStartingNumber = fileNameProcessor.RemoveStartingNumber;
-		}
+		    this.ShowFullPath = mainViewModel.ShowFullPath;
+		    this.ShowExtension = mainViewModel.ShowExtension;
+        }
 
 	    /// <summary>
 	    /// Background brush
@@ -144,17 +154,31 @@ namespace AutoRename
 		/// <returns>success or failure</returns>
 		public bool Rename()
 		{
-			if (fileNameProcessor.Rename(OldFullPath, NewFullPath))
-			{
-				return true;
-			}
-			else
-			{
-				Brush = errorBrush;
-				return false;
-			}
-		}
+		    try
+		    {
+		        if (fileNameProcessor.Rename(OldFullPath, NewFullPath))
+		        {
+		            return true;
+		        }
+		    }
+		    catch (SystemException e)
+		    {
+		        OnException(e);
+		        MessageBox.Show(e.Message, "Error");
+		    }
+            catch (Exception e)
+		    {
+		        OnException(e);
+		    }
 
+		    return false;
+        }
+
+        private void OnException(Exception e)
+        {
+            Debug.WriteLine(e);
+            Brush = errorBrush;
+        }
 
 	    private bool startWithUpperCase;
 		public bool StartWithUpperCase
@@ -189,11 +213,34 @@ namespace AutoRename
 			}
 		}
 
-		/// <summary>
-		/// Value changed through GUI
-		/// </summary>
-		/// <param name="type">value type</param>
-		public void ValuesChanged(EditType type)
+
+        private bool showExtension;
+        public bool ShowExtension
+        {
+            get { return this.showExtension; }
+            set
+            {
+                this.showExtension = value;
+                OnPropertyChanged("ShowExtension");
+            }
+        }
+
+        private bool showFullPath;
+        public bool ShowFullPath
+        {
+            get { return this.showFullPath; }
+            set
+            {
+                this.showFullPath = value;
+                OnPropertyChanged("ShowFullPath");
+            }
+        }
+
+        /// <summary>
+        /// Value changed through GUI
+        /// </summary>
+        /// <param name="type">value type</param>
+        private void ValuesChanged(EditType type)
 		{
 			if (isEditing)
 				return;
@@ -204,7 +251,7 @@ namespace AutoRename
 			{
 				case EditType.FileName:
 					if (mainViewModel.ShowExtension)
-						NewFullPath = Path.GetDirectoryName(NewFullPath) + Path.DirectorySeparatorChar + NewViewPath;
+						NewFullPath = Path.GetDirectoryName(NewFullPath) + Path.DirectorySeparatorChar + Path.GetFileName(NewViewPath);
 					else
 						NewFullPath = Path.GetDirectoryName(NewFullPath) + Path.DirectorySeparatorChar + Path.GetFileNameWithoutExtension(NewViewPath) + Path.GetExtension(NewFullPath);
 					break;
@@ -213,12 +260,12 @@ namespace AutoRename
 				case EditType.Brackets:
 				case EditType.StartingNumber:
 					NewFullPath = fileNameProcessor.AutoRename(OldFullPath, StartWithUpperCase, RemoveBrackets, RemoveStartingNumber);
-					NewViewPath = fileNameProcessor.ApplyVisualRules(NewFullPath);			
+					NewViewPath = fileNameProcessor.ApplyVisualRules(NewFullPath, ShowExtension, ShowFullPath);			
 					break;
 
 				case EditType.Visual:
-					OldViewPath = fileNameProcessor.ApplyVisualRules(OldFullPath);
-					NewViewPath = fileNameProcessor.ApplyVisualRules(NewFullPath);
+					OldViewPath = fileNameProcessor.ApplyVisualRules(OldFullPath, ShowExtension, ShowFullPath);
+					NewViewPath = fileNameProcessor.ApplyVisualRules(NewFullPath, ShowExtension, ShowFullPath);
 					break;
 			}
 
