@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 using System.Windows;
 
 namespace AutoRename
@@ -8,9 +7,15 @@ namespace AutoRename
     public static class Utility
     {
 		/// <summary>
-		/// Current Assembly
+		/// Current app info
 		/// </summary>
-		public static readonly AssemblyName CurrentApplication = Assembly.GetExecutingAssembly().GetName();
+#if WINDOWS_UWP
+		// UWP
+		public static readonly Windows.ApplicationModel.Package CurrentApplication = Windows.ApplicationModel.Package.Current;
+#else
+		// WPF, WinForms
+		public static readonly System.Reflection.AssemblyName CurrentApplication = System.Reflection.Assembly.GetExecutingAssembly().GetName();
+#endif
 
 		/// <summary>
 		/// Get maximum index or "defaultIndex" if multiple maximums

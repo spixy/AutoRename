@@ -273,7 +273,6 @@ namespace AutoRename
 	        for (int i = 0; i < str.Length; ++i)
             {
 	            char c = str[i];
-
 				switch (c)
                 {
 					case '_':
@@ -283,8 +282,10 @@ namespace AutoRename
 		                break;
 
 					case '0': // %20
-                        if ((i >= 2) && (str[i - 1] == '2') && (str[i - 2] == '%'))
-                           values['%']++;
+						if ((i >= 2) && (str[i - 1] == '2') && (str[i - 2] == '%'))
+						{
+							values['%']++;
+						}
                         break;
                 }
 			}
