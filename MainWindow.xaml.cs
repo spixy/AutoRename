@@ -5,176 +5,21 @@ using System.Windows.Controls;
 
 namespace AutoRename
 {
-    /// <summary>
-    /// Main Window
-    /// </summary>
     public partial class MainWindow : Window
     {
 	    private readonly MainViewModel model;
 		private readonly FileNameProcessor fileNameProcessor;
+        private readonly Persistence persistence;
 
-		public MainWindow()
+        public MainWindow()
         {
             InitializeComponent();
 
 			fileNameProcessor = new FileNameProcessor();
-
-			model = new MainViewModel(fileNameProcessor);
-
-			DataContext = model;
+            persistence = new Persistence(Properties.Resources.ConfigFile);
+            DataContext = model = new MainViewModel(fileNameProcessor);
 
 			LoadSettings();
-        }
-
-        private void ProcessArgv(ref bool renameAutomatically, ref bool forceOverwrite)
-		{
-			string[] argv = Environment.GetCommandLineArgs();
-			bool showHelpBox = false;
-
-			for (int i = 1; i < argv.Length; i++)
-            {
-	            string arg = argv[i];
-
-	            switch (arg.ToLower().Replace('/','-'))
-				{
-					case "-b":
-						model.RemoveBrackets = true;
-						break;
-
-					case "-uc":
-						model.StartWithUpperCase = true;
-						break;
-
-					case "-sn":
-						model.RemoveStartingNumber = true;
-						break;
-
-					case "-f":
-						forceOverwrite = true;
-						break;
-
-                    case "-y":
-						renameAutomatically = true;
-	                    break;
-
-				    case "-e":
-				        model.ExitAfterRename = true;
-				        break;
-
-                    case "/?":
-					case "-help":
-					case "--help":
-						showHelpBox = true;
-						break;
-
-					default:
-						if (Utility.ItemExists(arg))
-						{
-							model.AddFile(arg);
-						}
-						else
-						{
-							showHelpBox = true;
-						}
-						break;
-				}
-            }
-
-			if (showHelpBox)
-			{
-				MessageBox.Show(Properties.Resources.CmdParametersHelp, "Command line parameters", MessageBoxButton.OK, MessageBoxImage.Information);
-			}
-		}
-
-		private void LoadSettings()
-        {
-            if (!File.Exists(Properties.Resources.ConfigFile))
-                return;
-
-            try
-            {
-                string[] lines = File.ReadAllLines(Properties.Resources.ConfigFile);
-				bool boolValue;
-				string strValue;
-				Point vec2Value;
-
-				foreach (string line in lines)
-                {
-					string lineInLower = line.ToLowerInvariant();
-
-					if (Utility.TryGetBoolValue(lineInLower, "overwrite", out boolValue))
-					{
-						this.fileNameProcessor.ForceOverwrite = boolValue;
-					}
-					else if (Utility.TryGetBoolValue(lineInLower, "uppercase", out boolValue))
-					{
-						this.model.StartWithUpperCase = boolValue;
-					}
-					else if (Utility.TryGetBoolValue(lineInLower, "remove brackets", out boolValue))
-	                {
-		                this.model.RemoveBrackets = boolValue;
-					}
-	                else if (Utility.TryGetBoolValue(lineInLower, "remove starting number", out boolValue))
-					{
-						this.model.RemoveStartingNumber = boolValue;
-					}
-					else if (Utility.TryGetBoolValue(lineInLower, "extension", out boolValue))
-	                {
-		                this.model.ShowExtension = boolValue;
-					}
-					else if (Utility.TryGetBoolValue(lineInLower, "full path", out boolValue))
-					{
-						this.model.ShowFullPath = boolValue;
-					}
-					else if (Utility.TryGetBoolValue(lineInLower, "grid lines", out boolValue))
-	                {
-		                this.model.ShowGridLines = boolValue;
-					}
-					else if (Utility.TryGetBoolValue(lineInLower, "Exit after rename", out boolValue))
-					{
-					    this.model.ExitAfterRename = boolValue;
-					}
-                    else if (Utility.TryGetVec2Value(lineInLower, "position", out vec2Value))
-	                {
-		                Rect screen = SystemParameters.WorkArea;
-	                    this.Left = Utility.Clamp(vec2Value.X, screen.Left, screen.Right);
-	                    this.Top = Utility.Clamp(vec2Value.Y, screen.Top, screen.Bottom);
-					}
-					else if (Utility.TryGetVec2Value(lineInLower, "window", out vec2Value))
-					{
-						this.Width = vec2Value.X;
-					    this.Height = vec2Value.Y;
-					}
-                }
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show(ex.Message, "Cannot load preferences", MessageBoxButton.OK, MessageBoxImage.Error);
-			}
-		}
-
-		private void SaveSettings()
-        {
-            try
-			{
-				using (StreamWriter sw = new StreamWriter(Properties.Resources.ConfigFile, false))
-				{
-					sw.WriteLine("Overwrite " + fileNameProcessor.ForceOverwrite);
-					sw.WriteLine("Uppercase " + fileNameProcessor.StartWithUpperCase);
-					sw.WriteLine("Remove brackets " + fileNameProcessor.RemoveBrackets);
-					sw.WriteLine("Remove starting number " + fileNameProcessor.RemoveStartingNumber);
-                    sw.WriteLine("Extension " + model.ShowExtension);
-					sw.WriteLine("Full path " + model.ShowFullPath);
-					sw.WriteLine("Grid lines " + model.ShowGridLines);
-                    sw.WriteLine("Exit after rename " + model.ExitAfterRename);
-					sw.WriteLine("Position " + Left + "x" + Top);
-                    sw.WriteLine("Window " + Width + "x" + Height);
-                }
-            }
-            catch (Exception ex)
-            {
-	            MessageBox.Show(ex.Message, "Cannot save preferences", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -184,7 +29,7 @@ namespace AutoRename
 
             ProcessArgv(ref renameAutomatically, ref forceOverwrite);
 
-			this.fileNameProcessor.ForceOverwrite = forceOverwrite;
+			fileNameProcessor.ForceOverwrite = forceOverwrite;
 
             if (renameAutomatically)
             {
@@ -196,11 +41,99 @@ namespace AutoRename
 	            {
 					UpdateAvailableAction = UpdateAvailable
 	            };
-	            updater.IsUpdateAvailableAsync();
+	            updater.CheckForUpdateAvailableAsync();
             }
         }
 
-	    private void UpdateAvailable()
+        private void ProcessArgv(ref bool renameAutomatically, ref bool forceOverwrite)
+        {
+            string[] argv = Environment.GetCommandLineArgs();
+            bool showHelpBox = false;
+
+            for (int i = 1; i < argv.Length; i++)
+            {
+                string arg = argv[i];
+
+                switch (arg.ToLower().Replace('/', '-'))
+                {
+                    case "-b":
+                        model.RemoveBrackets = true;
+                        break;
+
+                    case "-uc":
+                        model.StartWithUpperCase = true;
+                        break;
+
+                    case "-sn":
+                        model.RemoveStartingNumber = true;
+                        break;
+
+                    case "-f":
+                        forceOverwrite = true;
+                        break;
+
+                    case "-y":
+                        renameAutomatically = true;
+                        break;
+
+                    case "-e":
+                        model.ExitAfterRename = true;
+                        break;
+
+                    case "/?":
+                    case "-help":
+                    case "--help":
+                        showHelpBox = true;
+                        break;
+
+                    default:
+                        if (File.Exists(arg) || Directory.Exists(arg))
+                        {
+                            model.AddFile(arg);
+                        }
+                        else
+                        {
+                            showHelpBox = true;
+                        }
+                        break;
+                }
+            }
+
+            if (showHelpBox)
+            {
+                MessageBox.Show(Properties.Resources.CmdParametersHelp, "Command line parameters", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
+        private void LoadSettings()
+        {
+            if (!File.Exists(persistence.FilePath))
+            {
+                return;
+            }
+            try
+            {
+                persistence.LoadSettings(fileNameProcessor, model, this);
+            }
+            catch
+            {
+                // ignored
+            }
+        }
+
+        private void SaveSettings()
+        {
+            try
+            {
+                persistence.SaveSettings(fileNameProcessor, model, this);
+            }
+            catch
+            {
+                // ignored
+            }
+        }
+
+        private void UpdateAvailable()
 	    {
 		    model.WebsiteButton = Properties.Resources.WebsiteButtonUpdate;
 	    }
@@ -213,15 +146,18 @@ namespace AutoRename
         private void Window_DragEnter(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop, false))
+            {
                 e.Effects = DragDropEffects.All;
+            }
         }
 
         private void Window_Drop(object sender, DragEventArgs e)
         {
             string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
-
             if (files != null)
+            {
                 model.AddFiles(files);
+            }
         }
 
 		private void StartWithUpperCase_Click(object sender, RoutedEventArgs e)

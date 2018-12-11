@@ -51,10 +51,7 @@ namespace AutoRename
 
 		private void OnPropertyChanged(string propertyName)
 		{
-			if (PropertyChanged != null)
-			{
-				PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-			}
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}
 		
 		public GridRowViewModel(MainViewModel mainViewModel, string file, FileNameProcessor fileNameProcessor)
@@ -71,11 +68,11 @@ namespace AutoRename
 
 			isEditing = false;
 
-			this.startWithUpperCase = fileNameProcessor.StartWithUpperCase;
-			this.removeBrackets = fileNameProcessor.RemoveBrackets;
-			this.removeStartingNumber = fileNameProcessor.RemoveStartingNumber;
-		    this.ShowFullPath = mainViewModel.ShowFullPath;
-		    this.ShowExtension = mainViewModel.ShowExtension;
+			startWithUpperCase = fileNameProcessor.StartWithUpperCase;
+			removeBrackets = fileNameProcessor.RemoveBrackets;
+			removeStartingNumber = fileNameProcessor.RemoveStartingNumber;
+		    ShowFullPath = mainViewModel.ShowFullPath;
+		    ShowExtension = mainViewModel.ShowExtension;
         }
 
 	    /// <summary>
@@ -84,10 +81,10 @@ namespace AutoRename
 	    private SolidColorBrush brush = normalBrush;
 	    public SolidColorBrush Brush
 	    {
-		    get { return this.brush; }
-			private set
+		    get => brush;
+		    private set
 			{
-				this.brush = value;
+				brush = value;
 				OnPropertyChanged("Brush");
 			}
 	    }
@@ -98,10 +95,10 @@ namespace AutoRename
         private string oldFullPath;
 	    public string OldFullPath
 	    {
-		    get { return this.oldFullPath; }
-			set
+		    get => oldFullPath;
+		    set
 			{
-				this.oldFullPath = value;
+				oldFullPath = value;
 				OnPropertyChanged("OldFullPath");
 			}
 	    }
@@ -112,10 +109,10 @@ namespace AutoRename
         private string oldViewPath;
 	    public string OldViewPath
 	    {
-		    get { return this.oldViewPath; }
-			set
+		    get => oldViewPath;
+		    set
 			{
-				this.oldViewPath = value;
+				oldViewPath = value;
 				OnPropertyChanged("OldViewPath");
 			}
 	    }
@@ -126,10 +123,10 @@ namespace AutoRename
         private string newFullPath;
 	    public string NewFullPath
 	    {
-		    get { return this.newFullPath; }
-			set
+		    get => newFullPath;
+		    set
 			{
-				this.newFullPath = value;
+				newFullPath = value;
 				OnPropertyChanged("NewFullPath");
 			}
 	    }
@@ -140,10 +137,10 @@ namespace AutoRename
         private string newViewPath;
 	    public string NewViewPath
 	    {
-		    get { return this.newViewPath; }
+		    get => newViewPath;
 		    set
 		    {
-			    this.newViewPath = value;
+			    newViewPath = value;
 				OnPropertyChanged("NewViewPath");
 		    }
 	    }
@@ -183,10 +180,10 @@ namespace AutoRename
 	    private bool startWithUpperCase;
 		public bool StartWithUpperCase
 		{
-			get { return this.startWithUpperCase; }
+			get => startWithUpperCase;
 			set
 			{
-				this.startWithUpperCase = value;
+				startWithUpperCase = value;
 				OnPropertyChanged("StartWithUpperCase");
 			}
 		}
@@ -194,10 +191,10 @@ namespace AutoRename
 		private bool removeBrackets;
 		public bool RemoveBrackets
 		{
-			get { return this.removeBrackets; }
+			get => removeBrackets;
 			set
 			{
-				this.removeBrackets = value;
+				removeBrackets = value;
 				OnPropertyChanged("RemoveBrackets");
 			}
 		}
@@ -205,10 +202,10 @@ namespace AutoRename
 	    private bool removeStartingNumber;
 		public bool RemoveStartingNumber
 		{
-			get { return this.removeStartingNumber; }
+			get => removeStartingNumber;
 			set
 			{
-				this.removeStartingNumber = value;
+				removeStartingNumber = value;
 				OnPropertyChanged("RemoveStartingNumber");
 			}
 		}
@@ -217,10 +214,10 @@ namespace AutoRename
         private bool showExtension;
         public bool ShowExtension
         {
-            get { return this.showExtension; }
-            set
+            get => showExtension;
+	        set
             {
-                this.showExtension = value;
+                showExtension = value;
                 OnPropertyChanged("ShowExtension");
             }
         }
@@ -228,10 +225,10 @@ namespace AutoRename
         private bool showFullPath;
         public bool ShowFullPath
         {
-            get { return this.showFullPath; }
-            set
+            get => showFullPath;
+	        set
             {
-                this.showFullPath = value;
+                showFullPath = value;
                 OnPropertyChanged("ShowFullPath");
             }
         }
@@ -243,7 +240,9 @@ namespace AutoRename
         private void ValuesChanged(EditType type)
 		{
 			if (isEditing)
+			{
 				return;
+			}
 
 			isEditing = true;
 
@@ -251,9 +250,13 @@ namespace AutoRename
 			{
 				case EditType.FileName:
 					if (mainViewModel.ShowExtension)
+					{
 						NewFullPath = Path.GetDirectoryName(NewFullPath) + Path.DirectorySeparatorChar + Path.GetFileName(NewViewPath);
+					}
 					else
+					{
 						NewFullPath = Path.GetDirectoryName(NewFullPath) + Path.DirectorySeparatorChar + Path.GetFileNameWithoutExtension(NewViewPath) + Path.GetExtension(NewFullPath);
+					}
 					break;
 
 				case EditType.UpperCase:

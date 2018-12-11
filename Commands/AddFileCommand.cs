@@ -6,11 +6,7 @@ namespace AutoRename
 {
 	public class AddFileCommand : ICommand
 	{
-		private readonly Lazy<OpenFileDialog> openFileDialog = new Lazy<OpenFileDialog>(() =>
-		{
-			var _openFileDialog = new OpenFileDialog { Multiselect = true };
-			return _openFileDialog;
-		});
+		private readonly Lazy<OpenFileDialog> openFileDialog = new Lazy<OpenFileDialog>(() => new OpenFileDialog { Multiselect = true });
 
 		private readonly MainViewModel model;
 

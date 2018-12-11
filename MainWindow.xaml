@@ -2,18 +2,18 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="{Binding Path=Title}" Icon="icon.ico" FontSize="13" AllowDrop="True"
-		Width="600" Height="380" MinWidth="480" MinHeight="195"
+		Width="600" Height="380" MinWidth="480" MinHeight="300"
         Loaded="Window_Loaded" Closed="Window_Closed" DragEnter="Window_DragEnter" Drop="Window_Drop">
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="62" />
+            <RowDefinition Height="66" />
             <RowDefinition Height="*" />
             <RowDefinition Height="50" />
         </Grid.RowDefinitions>
 
         <ToolBarTray Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="0,0,0,0">
-            <ToolBar HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="0,0,0,0">
+            <ToolBar HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="0,0,0,0" ToolBarTray.IsLocked="True" >
 
                 <Button Command="{Binding AddFileButtonClick}" Margin="0,0,0,-1" Height="53" Width="95" >
                     <TextBlock Text="Add file" FontSize="14" TextAlignment="Center"/>
@@ -28,23 +28,23 @@
                 <GridSplitter Width="10" IsEnabled="False"/>
 
                 <StackPanel Orientation="Vertical" Margin="0,2,0,0">
-                    <CheckBox Content="Words start with upper case" IsChecked="{Binding Path=StartWithUpperCase, Mode=TwoWay}" Margin="10,2,10,0"/>
-                    <CheckBox Content="Remove text in brackets" IsChecked="{Binding Path=RemoveBrackets, Mode=TwoWay}" Margin="10,2,10,0"/>
-                    <CheckBox Content="Remove starting number" IsChecked="{Binding Path=RemoveStartingNumber, Mode=TwoWay}" Margin="10,2,10,0"/>
+                    <CheckBox Content="Words start with upper case" IsChecked="{Binding Path=StartWithUpperCase, Mode=TwoWay}" Margin="10,2,10,1"/>
+                    <CheckBox Content="Remove text in brackets" IsChecked="{Binding Path=RemoveBrackets, Mode=TwoWay}" Margin="10,2,10,1"/>
+                    <CheckBox Content="Remove starting number" IsChecked="{Binding Path=RemoveStartingNumber, Mode=TwoWay}" Margin="10,2,10,1"/>
                 </StackPanel>
 
                 <GridSplitter Width="4" IsEnabled="False"/>
 
                 <StackPanel Orientation="Vertical" Margin="0,2,0,0">
-                    <CheckBox Content="Show file extension" IsChecked="{Binding Path=ShowExtension, Mode=TwoWay}" Margin="10,2,10,0"/>
-                    <CheckBox Content="Show full path" IsChecked="{Binding Path=ShowFullPath, Mode=TwoWay}" Margin="10,2,10,0"/>
-                    <CheckBox Content="Show grid lines" IsChecked="{Binding Path=ShowGridLines, Mode=TwoWay}" Margin="10,2,10,0"/>
+                    <CheckBox Content="Show file extension" IsChecked="{Binding Path=ShowExtension, Mode=TwoWay}" Margin="10,2,10,1"/>
+                    <CheckBox Content="Show full path" IsChecked="{Binding Path=ShowFullPath, Mode=TwoWay}" Margin="10,2,10,1"/>
+                    <CheckBox Content="Show grid lines" IsChecked="{Binding Path=ShowGridLines, Mode=TwoWay}" Margin="10,2,10,1"/>
                 </StackPanel>
 
                 <GridSplitter Width="4" IsEnabled="False"/>
 
                 <StackPanel Orientation="Vertical" Margin="0,2,0,0">
-                    <CheckBox Content="Exit after renaming" IsChecked="{Binding Path=ExitAfterRename, Mode=TwoWay}" Margin="10,2,10,0"/>
+                    <CheckBox Content="Exit after renaming" IsChecked="{Binding Path=ExitAfterRename, Mode=TwoWay}" Margin="10,2,10,1"/>
                 </StackPanel>
 
             </ToolBar>

@@ -21,9 +21,6 @@ namespace AutoRename
 		Visual
 	}
 
-    /// <summary>
-    /// Main GUI
-    /// </summary>
     public class MainViewModel : INotifyPropertyChanged
     {
 	    private readonly FileNameProcessor fileNameProcessor;
@@ -37,58 +34,53 @@ namespace AutoRename
 	    {
 		    MainViewModel model = (MainViewModel) sender;
 
-		    switch (args.PropertyName)
-		    {
-		        case "SelectedItem":
-		        {
-		            model.CheckGuiStates();
-		            break;
-                }
-			    case "StartWithUpperCase":
-				{
-					bool value = model.StartWithUpperCase;
-					foreach (var row in model.DataGridRows)
-						row.StartWithUpperCase = value;
-					break;
-                }
-			    case "RemoveBrackets":
-				{
-					bool value = model.RemoveBrackets;
-					foreach (var row in model.DataGridRows)
-						row.RemoveBrackets = value;
-					break;
-                }
-				case "RemoveStartingNumber":
-				{
-					bool value = model.RemoveStartingNumber;
-					foreach (var row in model.DataGridRows)
-						row.RemoveStartingNumber = value;
-					break;
-		        }
-		        case "ShowFullPath":
-		        {
-		            bool value = model.showFullPath;
-		            foreach (var row in model.DataGridRows)
-		                row.ShowFullPath = value;
-                    break;
-		        }
-		        case "ShowExtension":
-		        {
-		            bool value = model.ShowExtension;
-		            foreach (var row in model.DataGridRows)
-		                row.ShowExtension = value;
-                        break;
-                }
-		    }
+	        switch (args.PropertyName)
+	        {
+	            case "SelectedItem":
+	                model.CheckGuiStates();
+	                break;
+
+	            case "StartWithUpperCase":
+	                foreach (var row in model.DataGridRows)
+	                {
+	                    row.StartWithUpperCase = model.StartWithUpperCase;
+	                }
+	                break;
+
+	            case "RemoveBrackets":
+	                foreach (var row in model.DataGridRows)
+	                {
+	                    row.RemoveBrackets = model.RemoveBrackets;
+	                }
+	                break;
+
+	            case "RemoveStartingNumber":
+	                foreach (var row in model.DataGridRows)
+	                {
+	                    row.RemoveStartingNumber = model.RemoveStartingNumber;
+	                }
+	                break;
+
+	            case "ShowFullPath":
+	                foreach (var row in model.DataGridRows)
+	                {
+	                    row.ShowFullPath = model.showFullPath;
+	                }
+	                break;
+
+	            case "ShowExtension":
+	                foreach (var row in model.DataGridRows)
+	                {
+	                    row.ShowExtension = model.ShowExtension;
+	                }
+	                break;
+	        }
 	    };
 
 	    private void OnPropertyChanged(string propertyName)
-		{
-			if (PropertyChanged != null)
-			{
-				PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-			}
-		}
+	    {
+		    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+	    }
 
 	    /// <summary>
 	    /// DataGrid Rows
@@ -96,10 +88,10 @@ namespace AutoRename
 	    private ObservableCollection<GridRowViewModel> dataGridRows = new ObservableCollection<GridRowViewModel>();
 	    public ObservableCollection<GridRowViewModel> DataGridRows
 	    {
-		    get { return this.dataGridRows; }
+		    get => dataGridRows;
 		    set
 		    {
-			    this.dataGridRows = value;
+			    dataGridRows = value;
 			    OnPropertyChanged("DataGridRows");
 		    }
 	    }
@@ -113,7 +105,7 @@ namespace AutoRename
             {
 	            string name = Utility.CurrentApplication.Name;
 	            Version version = Utility.CurrentApplication.Version;
-	            return $"{name} {version.Major}.{version.Minor}{(version.Build > 0 ? "." + version.Build : "")}";
+	            return $"{name} {version.Major}{(version.Minor > 0 ? "." + version.Minor : "")}{(version.Build > 0 ? "." + version.Build : "")}";
             }
         }
 
@@ -123,10 +115,10 @@ namespace AutoRename
 	    private string websiteButton = Properties.Resources.WebsiteButtonVisit;
 	    public string WebsiteButton
 	    {
-		    get { return this.websiteButton; }
-			set
+		    get => websiteButton;
+		    set
 			{
-				this.websiteButton = value;
+				websiteButton = value;
 				OnPropertyChanged("WebsiteButton");
 			}
 	    }
@@ -137,10 +129,10 @@ namespace AutoRename
 	    private GridRowViewModel selectedItem;
 	    public GridRowViewModel SelectedItem
 	    {
-		    get { return this.selectedItem; }
-			set
+		    get => selectedItem;
+		    set
 			{
-				this.selectedItem = value;			
+				selectedItem = value;			
 				OnPropertyChanged("SelectedItem");
 			}
 	    }
@@ -150,7 +142,7 @@ namespace AutoRename
 	    /// </summary>
 	    public bool StartWithUpperCase
 	    {
-			get { return fileNameProcessor.StartWithUpperCase; }
+			get => fileNameProcessor.StartWithUpperCase;
 		    set
 		    {
 				fileNameProcessor.StartWithUpperCase = value;
@@ -163,7 +155,7 @@ namespace AutoRename
 		/// </summary>
 	    public bool RemoveBrackets
 	    {
-			get { return fileNameProcessor.RemoveBrackets; }
+			get => fileNameProcessor.RemoveBrackets;
 		    set
 			{
 				fileNameProcessor.RemoveBrackets = value;
@@ -174,7 +166,7 @@ namespace AutoRename
 
 		public bool RemoveStartingNumber
 		{
-			get { return fileNameProcessor.RemoveStartingNumber; }
+			get => fileNameProcessor.RemoveStartingNumber;
 			set
 			{
 				fileNameProcessor.RemoveStartingNumber = value;
@@ -188,8 +180,8 @@ namespace AutoRename
         private bool showExtension;
         public bool ShowExtension
 	    {
-		    get { return showExtension; }
-		    set
+		    get => showExtension;
+	        set
 		    {
 		        showExtension = value;
 				OnPropertyChanged("ShowExtension");
@@ -202,8 +194,8 @@ namespace AutoRename
         private bool showFullPath;
         public bool ShowFullPath
 	    {
-		    get { return showFullPath; }
-		    set
+		    get => showFullPath;
+	        set
 		    {
 		        showFullPath = value;
 				OnPropertyChanged("ShowFullPath");
@@ -216,30 +208,27 @@ namespace AutoRename
 	    private bool showGridLines;
 	    public bool ShowGridLines
 	    {
-		    get { return this.showGridLines; }
+		    get => showGridLines;
 		    set
 		    {
-		        this.showGridLines = value;
+		        showGridLines = value;
 			    OnPropertyChanged("ShowGridLines");
 		        OnPropertyChanged("GridLinesVisibility");
             }
 	    }
 
-        public DataGridGridLinesVisibility GridLinesVisibility
-        {
-            get { return this.ShowGridLines ? DataGridGridLinesVisibility.All : DataGridGridLinesVisibility.None; }
-        }
+        public DataGridGridLinesVisibility GridLinesVisibility => ShowGridLines ? DataGridGridLinesVisibility.All : DataGridGridLinesVisibility.None;
 
-        /// <summary>
+	    /// <summary>
         /// Show full path checkbox
         /// </summary>
         private bool exitAfterRename;
         public bool ExitAfterRename
         {
-            get { return this.exitAfterRename; }
-            set
+            get => exitAfterRename;
+	        set
             {
-                this.exitAfterRename = value;
+                exitAfterRename = value;
                 OnPropertyChanged("ExitAfterRename");
             }
         }
@@ -248,46 +237,19 @@ namespace AutoRename
         /// Rename button
         /// </summary>
         private RenameCommand renameButtonCommand;
-	    public ICommand RenameButtonClick
-	    {
-		    get
-		    {
-			    if (this.renameButtonCommand == null)
-				    this.renameButtonCommand = new RenameCommand(this);
-
-			    return this.renameButtonCommand;
-		    }
-	    }
+	    public ICommand RenameButtonClick => renameButtonCommand ?? (renameButtonCommand = new RenameCommand(this));
 
 	    /// <summary>
 	    /// Add file button
 	    /// </summary>
 	    private AddFileCommand addFileCommand;
-	    public ICommand AddFileButtonClick
-	    {
-		    get
-		    {
-			    if (this.addFileCommand == null)
-				    this.addFileCommand = new AddFileCommand(this);
-
-			    return this.addFileCommand;
-		    }
-	    }
+	    public ICommand AddFileButtonClick => addFileCommand ?? (addFileCommand = new AddFileCommand(this));
 
 	    /// <summary>
 	    /// Website button
 	    /// </summary>
 	    private WebsiteCommand websiteCommand;
-	    public ICommand WebsiteButtonClick
-	    {
-		    get
-		    {
-			    if (this.websiteCommand == null)
-				    this.websiteCommand = new WebsiteCommand();
-
-			    return this.websiteCommand;
-		    }
-	    }
+	    public ICommand WebsiteButtonClick => websiteCommand ?? (websiteCommand = new WebsiteCommand());
 
 	    /// <summary>
 	    /// Rename button Enabled / Disabled
@@ -295,10 +257,10 @@ namespace AutoRename
 	    private bool renameButtonEnabled;
 	    public bool RenameButtonEnabled
 	    {
-		    get { return this.renameButtonEnabled; }
+		    get => renameButtonEnabled;
 		    set
 		    {
-			    this.renameButtonEnabled = value;
+			    renameButtonEnabled = value;
 			    OnPropertyChanged("RenameButtonEnabled");
 		    }
 	    }
@@ -306,10 +268,10 @@ namespace AutoRename
 	    private bool contextMenuEnabled;
 		public bool ContextMenuEnabled
 	    {
-			get { return this.contextMenuEnabled; }
+			get => contextMenuEnabled;
 			set
 			{
-				this.contextMenuEnabled = value;
+				contextMenuEnabled = value;
 				OnPropertyChanged("ContextMenuEnabled");
 			}
 		}
@@ -317,10 +279,10 @@ namespace AutoRename
 		private Visibility rowSettingsEnabled = Visibility.Collapsed;
 		public Visibility RowSettingsEnabled
 		{
-			get { return this.rowSettingsEnabled; }
+			get => rowSettingsEnabled;
 			set
 			{
-				this.rowSettingsEnabled = value;
+				rowSettingsEnabled = value;
 				OnPropertyChanged("RowSettingsEnabled");
 			}
 		}
@@ -332,7 +294,9 @@ namespace AutoRename
 	    public void AddFiles(IEnumerable<string> files)
 	    {
 		    foreach (string file in files)
+		    {
 			    AddFile(file);
+		    }
 	    }
 
 	    /// <summary>
@@ -342,7 +306,9 @@ namespace AutoRename
 	    public void AddFile(string file)
 	    {
 		    if (FileAlreadyLoaded(file))
+		    {
 			    return;
+		    }
 
 		    try
 		    {
@@ -371,7 +337,6 @@ namespace AutoRename
 				    return true;
 			    }
 		    }
-
 		    return false;
 	    }
 
@@ -389,24 +354,22 @@ namespace AutoRename
 
 	    public void RenameAll()
 	    {
-		    var list = DataGridRows;
-	        int listCount = list.Count;
-
-            if (listCount == 0)
-			    return;
+	        if (DataGridRows.Count == 0)
+	        {
+	            return;
+	        }
 
 		    bool success = true;
 
-	        for (int i = 0; i < listCount; i++)
-		    {
-			    GridRowViewModel row = list[i];
-			    bool renamed = row.Rename();
-		        if (renamed)
-		        {
-		            DataGridRows.Remove(row);
-                }
-			    success &= renamed;
-		    }
+	        foreach (GridRowViewModel row in DataGridRows)
+	        {
+	            bool renamed = row.Rename();
+	            if (renamed)
+	            {
+	                DataGridRows.Remove(row);
+	            }
+	            success &= renamed;
+	        }
 
 		    if (success)
 		    {
