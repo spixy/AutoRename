@@ -20,7 +20,11 @@ namespace AutoRename
             persistence = new Persistence(Properties.Resources.ConfigFile);
             DataContext = model = new MainViewModel(fileNameProcessor);
 
-			LoadSettings();
+            string appName = Utility.CurrentApplication.Name;
+            Version appVersion = Utility.CurrentApplication.Version;
+            Title = $"{appName} {appVersion.Major}{(appVersion.Minor > 0 ? "." + appVersion.Minor : "")}{(appVersion.Build > 0 ? "." + appVersion.Build : "")}";
+
+            LoadSettings();
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)

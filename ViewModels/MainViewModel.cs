@@ -95,22 +95,11 @@ namespace AutoRename
             get => dataGridRows;
             set
             {
-                dataGridRows = value;
-                OnPropertyChanged();
-            }
-        }
-
-        /// <summary>
-        /// Window title
-        /// </summary>
-        public string Title
-        {
-            get
-            {
-                string name = Utility.CurrentApplication.Name;
-                Version version = Utility.CurrentApplication.Version;
-                return
-                    $"{name} {version.Major}{(version.Minor > 0 ? "." + version.Minor : "")}{(version.Build > 0 ? "." + version.Build : "")}";
+                if (dataGridRows != value)
+                {
+                    dataGridRows = value;
+                    OnPropertyChanged();
+                }
             }
         }
 
@@ -124,8 +113,11 @@ namespace AutoRename
             get => websiteButton;
             set
             {
-                websiteButton = value;
-                OnPropertyChanged();
+                if (websiteButton != value)
+                {
+                    websiteButton = value;
+                    OnPropertyChanged();
+                }
             }
         }
 
@@ -139,8 +131,11 @@ namespace AutoRename
             get => selectedItem;
             set
             {
-                selectedItem = value;
-                OnPropertyChanged();
+                if (selectedItem != value)
+                {
+                    selectedItem = value;
+                    OnPropertyChanged();
+                }
             }
         }
 
@@ -152,8 +147,11 @@ namespace AutoRename
             get => fileNameProcessor.StartWithUpperCase;
             set
             {
-                fileNameProcessor.StartWithUpperCase = value;
-                OnPropertyChanged();
+                if (fileNameProcessor.StartWithUpperCase != value)
+                {
+                    fileNameProcessor.StartWithUpperCase = value;
+                    OnPropertyChanged();
+                }
             }
         }
 
@@ -165,8 +163,11 @@ namespace AutoRename
             get => fileNameProcessor.RemoveBrackets;
             set
             {
-                fileNameProcessor.RemoveBrackets = value;
-                OnPropertyChanged();
+                if (fileNameProcessor.RemoveBrackets != value)
+                {
+                    fileNameProcessor.RemoveBrackets = value;
+                    OnPropertyChanged();
+                }
             }
         }
 
@@ -175,8 +176,11 @@ namespace AutoRename
             get => fileNameProcessor.RemoveStartingNumber;
             set
             {
-                fileNameProcessor.RemoveStartingNumber = value;
-                OnPropertyChanged();
+                if (fileNameProcessor.RemoveStartingNumber != value)
+                {
+                    fileNameProcessor.RemoveStartingNumber = value;
+                    OnPropertyChanged();
+                }
             }
         }
 
@@ -190,8 +194,11 @@ namespace AutoRename
             get => showExtension;
             set
             {
-                showExtension = value;
-                OnPropertyChanged();
+                if (showExtension != value)
+                {
+                    showExtension = value;
+                    OnPropertyChanged();
+                }
             }
         }
 
@@ -205,8 +212,11 @@ namespace AutoRename
             get => showFullPath;
             set
             {
-                showFullPath = value;
-                OnPropertyChanged();
+                if (showFullPath != value)
+                {
+                    showFullPath = value;
+                    OnPropertyChanged();
+                }
             }
         }
 
@@ -220,9 +230,12 @@ namespace AutoRename
             get => showGridLines;
             set
             {
-                showGridLines = value;
-                OnPropertyChanged();
-                OnPropertyChanged("GridLinesVisibility");
+                if (showGridLines != value)
+                {
+                    showGridLines = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged("GridLinesVisibility");
+                }
             }
         }
 

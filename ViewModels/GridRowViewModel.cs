@@ -87,8 +87,11 @@ namespace AutoRename
             get => brush;
             private set
             {
-                brush = value;
-                OnPropertyChanged();
+                if (brush != value)
+                {
+                    brush = value;
+                    OnPropertyChanged();
+                }
             }
         }
 
@@ -102,8 +105,11 @@ namespace AutoRename
             get => oldFullPath;
             set
             {
-                oldFullPath = value;
-                OnPropertyChanged();
+                if (oldFullPath != value)
+                {
+                    oldFullPath = value;
+                    OnPropertyChanged();
+                }
             }
         }
 
@@ -117,8 +123,11 @@ namespace AutoRename
             get => oldViewPath;
             set
             {
-                oldViewPath = value;
-                OnPropertyChanged();
+                if (oldViewPath != value)
+                {
+                    oldViewPath = value;
+                    OnPropertyChanged();
+                }
             }
         }
 
@@ -132,8 +141,11 @@ namespace AutoRename
             get => newFullPath;
             set
             {
-                newFullPath = value;
-                OnPropertyChanged();
+                if (newFullPath != value)
+                {
+                    newFullPath = value;
+                    OnPropertyChanged();
+                }
             }
         }
 
@@ -147,8 +159,11 @@ namespace AutoRename
             get => newViewPath;
             set
             {
-                newViewPath = value;
-                OnPropertyChanged();
+                if (newViewPath != value)
+                {
+                    newViewPath = value;
+                    OnPropertyChanged();
+                }
             }
         }
 

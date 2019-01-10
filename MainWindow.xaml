@@ -1,7 +1,7 @@
 ﻿<Window x:Class="AutoRename.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="{Binding Path=Title}" Icon="icon.ico" FontSize="13" AllowDrop="True"
+        Icon="icon.ico" FontSize="13" AllowDrop="True"
 		Width="600" Height="380" MinWidth="480" MinHeight="300"
         Loaded="Window_Loaded" Closed="Window_Closed" DragEnter="Window_DragEnter" Drop="Window_Drop">
 
