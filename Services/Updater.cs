@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using System.Net;
 
-namespace AutoRename
+namespace AutoRename.Services
 {
     public class Updater
     {
@@ -40,7 +40,7 @@ namespace AutoRename
 
         private void Bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            if ((bool)e.Result)
+            if ((bool) e.Result)
             {
                 UpdateAvailableAction?.Invoke();
             }
@@ -60,11 +60,11 @@ namespace AutoRename
             {
                 using (WebClient update = new WebClient())
                 {
-					LatestVersion = update.DownloadString(updateFileUrl).Trim();
+                    LatestVersion = update.DownloadString(updateFileUrl).Trim();
                 }
 
-				string currentVersion = Utility.CurrentApplication.Version.ToString().Trim();
-				return currentVersion != LatestVersion;
+                string currentVersion = Utility.CurrentApplication.Version.ToString().Trim();
+                return currentVersion != LatestVersion;
             }
             catch
             {

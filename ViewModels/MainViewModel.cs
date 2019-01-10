@@ -3,385 +3,403 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Media;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using AutoRename.Commands;
+using AutoRename.Services;
 
 namespace AutoRename
 {
-	/// <summary>
-	/// GUI edit type
-	/// </summary>
-	public enum EditType
-	{
-		FileName,
-		UpperCase,
-		Brackets,
-		StartingNumber,
-		Visual
-	}
+    /// <summary>
+    /// GUI edit type
+    /// </summary>
+    public enum EditType
+    {
+        FileName,
+        UpperCase,
+        Brackets,
+        StartingNumber,
+        Visual
+    }
 
     public class MainViewModel : INotifyPropertyChanged
     {
-	    private readonly FileNameProcessor fileNameProcessor;
+        private readonly FileNameProcessor fileNameProcessor;
 
-		public MainViewModel(FileNameProcessor fileNameProcessor)
-		{
-			this.fileNameProcessor = fileNameProcessor;
-		}
+        public MainViewModel(FileNameProcessor fileNameProcessor)
+        {
+            this.fileNameProcessor = fileNameProcessor;
+        }
 
-		public event PropertyChangedEventHandler PropertyChanged = (sender, args) =>
-	    {
-		    MainViewModel model = (MainViewModel) sender;
+        public event PropertyChangedEventHandler PropertyChanged = (sender, args) =>
+        {
+            MainViewModel model = (MainViewModel) sender;
 
-	        switch (args.PropertyName)
-	        {
-	            case "SelectedItem":
-	                model.CheckGuiStates();
-	                break;
+            switch (args.PropertyName)
+            {
+                case nameof(SelectedItem):
+                    model.CheckGuiStates();
+                    break;
 
-	            case "StartWithUpperCase":
-	                foreach (var row in model.DataGridRows)
-	                {
-	                    row.StartWithUpperCase = model.StartWithUpperCase;
-	                }
-	                break;
+                case nameof(StartWithUpperCase):
+                    foreach (var row in model.DataGridRows)
+                    {
+                        row.StartWithUpperCase = model.StartWithUpperCase;
+                    }
+                    break;
 
-	            case "RemoveBrackets":
-	                foreach (var row in model.DataGridRows)
-	                {
-	                    row.RemoveBrackets = model.RemoveBrackets;
-	                }
-	                break;
+                case nameof(RemoveBrackets):
+                    foreach (var row in model.DataGridRows)
+                    {
+                        row.RemoveBrackets = model.RemoveBrackets;
+                    }
+                    break;
 
-	            case "RemoveStartingNumber":
-	                foreach (var row in model.DataGridRows)
-	                {
-	                    row.RemoveStartingNumber = model.RemoveStartingNumber;
-	                }
-	                break;
+                case nameof(RemoveStartingNumber):
+                    foreach (var row in model.DataGridRows)
+                    {
+                        row.RemoveStartingNumber = model.RemoveStartingNumber;
+                    }
+                    break;
 
-	            case "ShowFullPath":
-	                foreach (var row in model.DataGridRows)
-	                {
-	                    row.ShowFullPath = model.showFullPath;
-	                }
-	                break;
+                case nameof(ShowFullPath):
+                    foreach (var row in model.DataGridRows)
+                    {
+                        row.ShowFullPath = model.showFullPath;
+                    }
+                    break;
 
-	            case "ShowExtension":
-	                foreach (var row in model.DataGridRows)
-	                {
-	                    row.ShowExtension = model.ShowExtension;
-	                }
-	                break;
-	        }
-	    };
+                case nameof(ShowExtension):
+                    foreach (var row in model.DataGridRows)
+                    {
+                        row.ShowExtension = model.ShowExtension;
+                    }
+                    break;
+            }
+        };
 
-	    private void OnPropertyChanged(string propertyName)
-	    {
-		    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-	    }
+        private void OnPropertyChanged([CallerMemberName]string propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
 
-	    /// <summary>
-	    /// DataGrid Rows
-	    /// </summary>
-	    private ObservableCollection<GridRowViewModel> dataGridRows = new ObservableCollection<GridRowViewModel>();
-	    public ObservableCollection<GridRowViewModel> DataGridRows
-	    {
-		    get => dataGridRows;
-		    set
-		    {
-			    dataGridRows = value;
-			    OnPropertyChanged("DataGridRows");
-		    }
-	    }
+        /// <summary>
+        /// DataGrid Rows
+        /// </summary>
+        private ObservableCollection<GridRowViewModel> dataGridRows = new ObservableCollection<GridRowViewModel>();
 
-	    /// <summary>
+        public ObservableCollection<GridRowViewModel> DataGridRows
+        {
+            get => dataGridRows;
+            set
+            {
+                dataGridRows = value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>
         /// Window title
         /// </summary>
         public string Title
         {
             get
             {
-	            string name = Utility.CurrentApplication.Name;
-	            Version version = Utility.CurrentApplication.Version;
-	            return $"{name} {version.Major}{(version.Minor > 0 ? "." + version.Minor : "")}{(version.Build > 0 ? "." + version.Build : "")}";
+                string name = Utility.CurrentApplication.Name;
+                Version version = Utility.CurrentApplication.Version;
+                return
+                    $"{name} {version.Major}{(version.Minor > 0 ? "." + version.Minor : "")}{(version.Build > 0 ? "." + version.Build : "")}";
             }
         }
 
-	    /// <summary>
-	    /// Website button caption
-	    /// </summary>
-	    private string websiteButton = Properties.Resources.WebsiteButtonVisit;
-	    public string WebsiteButton
-	    {
-		    get => websiteButton;
-		    set
-			{
-				websiteButton = value;
-				OnPropertyChanged("WebsiteButton");
-			}
-	    }
+        /// <summary>
+        /// Website button caption
+        /// </summary>
+        private string websiteButton = Properties.Resources.WebsiteButtonVisit;
 
-	    /// <summary>
-	    /// Selected row in DagaGrid
-	    /// </summary>
-	    private GridRowViewModel selectedItem;
-	    public GridRowViewModel SelectedItem
-	    {
-		    get => selectedItem;
-		    set
-			{
-				selectedItem = value;			
-				OnPropertyChanged("SelectedItem");
-			}
-	    }
+        public string WebsiteButton
+        {
+            get => websiteButton;
+            set
+            {
+                websiteButton = value;
+                OnPropertyChanged();
+            }
+        }
 
-	    /// <summary>
-	    /// Start wit upper case checkbox
-	    /// </summary>
-	    public bool StartWithUpperCase
-	    {
-			get => fileNameProcessor.StartWithUpperCase;
-		    set
-		    {
-				fileNameProcessor.StartWithUpperCase = value;
-				OnPropertyChanged("StartWithUpperCase");
-		    }
-	    }
+        /// <summary>
+        /// Selected row in DagaGrid
+        /// </summary>
+        private GridRowViewModel selectedItem;
 
-	    /// <summary>
-	    /// Remove brackets
-		/// </summary>
-	    public bool RemoveBrackets
-	    {
-			get => fileNameProcessor.RemoveBrackets;
-		    set
-			{
-				fileNameProcessor.RemoveBrackets = value;
-			    OnPropertyChanged("RemoveBrackets");
+        public GridRowViewModel SelectedItem
+        {
+            get => selectedItem;
+            set
+            {
+                selectedItem = value;
+                OnPropertyChanged();
+            }
+        }
 
-		    }
-	    }
+        /// <summary>
+        /// Start wit upper case checkbox
+        /// </summary>
+        public bool StartWithUpperCase
+        {
+            get => fileNameProcessor.StartWithUpperCase;
+            set
+            {
+                fileNameProcessor.StartWithUpperCase = value;
+                OnPropertyChanged();
+            }
+        }
 
-		public bool RemoveStartingNumber
-		{
-			get => fileNameProcessor.RemoveStartingNumber;
-			set
-			{
-				fileNameProcessor.RemoveStartingNumber = value;
-				OnPropertyChanged("RemoveStartingNumber");
-			}
-		}
+        /// <summary>
+        /// Remove brackets
+        /// </summary>
+        public bool RemoveBrackets
+        {
+            get => fileNameProcessor.RemoveBrackets;
+            set
+            {
+                fileNameProcessor.RemoveBrackets = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool RemoveStartingNumber
+        {
+            get => fileNameProcessor.RemoveStartingNumber;
+            set
+            {
+                fileNameProcessor.RemoveStartingNumber = value;
+                OnPropertyChanged();
+            }
+        }
 
         /// <summary>
         /// Show extension checkbox
         /// </summary>
         private bool showExtension;
+
         public bool ShowExtension
-	    {
-		    get => showExtension;
-	        set
-		    {
-		        showExtension = value;
-				OnPropertyChanged("ShowExtension");
-		    }
-	    }
+        {
+            get => showExtension;
+            set
+            {
+                showExtension = value;
+                OnPropertyChanged();
+            }
+        }
 
         /// <summary>
         /// Show full path checkbox
         /// </summary>
         private bool showFullPath;
-        public bool ShowFullPath
-	    {
-		    get => showFullPath;
-	        set
-		    {
-		        showFullPath = value;
-				OnPropertyChanged("ShowFullPath");
-		    }
-	    }
 
-	    /// <summary>
-	    /// Show full path checkbox
-	    /// </summary>
-	    private bool showGridLines;
-	    public bool ShowGridLines
-	    {
-		    get => showGridLines;
-		    set
-		    {
-		        showGridLines = value;
-			    OnPropertyChanged("ShowGridLines");
-		        OnPropertyChanged("GridLinesVisibility");
+        public bool ShowFullPath
+        {
+            get => showFullPath;
+            set
+            {
+                showFullPath = value;
+                OnPropertyChanged();
             }
-	    }
+        }
+
+        /// <summary>
+        /// Show full path checkbox
+        /// </summary>
+        private bool showGridLines;
+
+        public bool ShowGridLines
+        {
+            get => showGridLines;
+            set
+            {
+                showGridLines = value;
+                OnPropertyChanged();
+                OnPropertyChanged("GridLinesVisibility");
+            }
+        }
 
         public DataGridGridLinesVisibility GridLinesVisibility => ShowGridLines ? DataGridGridLinesVisibility.All : DataGridGridLinesVisibility.None;
 
-	    /// <summary>
+        /// <summary>
         /// Show full path checkbox
         /// </summary>
         private bool exitAfterRename;
+
         public bool ExitAfterRename
         {
             get => exitAfterRename;
-	        set
+            set
             {
                 exitAfterRename = value;
-                OnPropertyChanged("ExitAfterRename");
+                OnPropertyChanged();
             }
         }
 
         /// <summary>
         /// Rename button
         /// </summary>
-        private RenameCommand renameButtonCommand;
-	    public ICommand RenameButtonClick => renameButtonCommand ?? (renameButtonCommand = new RenameCommand(this));
+        private RelayCommand renameButtonCommand;
 
-	    /// <summary>
-	    /// Add file button
-	    /// </summary>
-	    private AddFileCommand addFileCommand;
-	    public ICommand AddFileButtonClick => addFileCommand ?? (addFileCommand = new AddFileCommand(this));
+        public ICommand RenameButtonClick => renameButtonCommand ?? (renameButtonCommand = new RelayCommand(RenameAll));
 
-	    /// <summary>
-	    /// Website button
-	    /// </summary>
-	    private WebsiteCommand websiteCommand;
-	    public ICommand WebsiteButtonClick => websiteCommand ?? (websiteCommand = new WebsiteCommand());
+        /// <summary>
+        /// Add file button
+        /// </summary>
+        private AddFileCommand addFileCommand;
 
-	    /// <summary>
-	    /// Rename button Enabled / Disabled
-	    /// </summary>
-	    private bool renameButtonEnabled;
-	    public bool RenameButtonEnabled
-	    {
-		    get => renameButtonEnabled;
-		    set
-		    {
-			    renameButtonEnabled = value;
-			    OnPropertyChanged("RenameButtonEnabled");
-		    }
-	    }
+        public ICommand AddFileButtonClick => addFileCommand ?? (addFileCommand = new AddFileCommand(this));
 
-	    private bool contextMenuEnabled;
-		public bool ContextMenuEnabled
-	    {
-			get => contextMenuEnabled;
-			set
-			{
-				contextMenuEnabled = value;
-				OnPropertyChanged("ContextMenuEnabled");
-			}
-		}
+        /// <summary>
+        /// Website button
+        /// </summary>
+        private StartProcessCommand _startProcessCommand;
 
-		private Visibility rowSettingsEnabled = Visibility.Collapsed;
-		public Visibility RowSettingsEnabled
-		{
-			get => rowSettingsEnabled;
-			set
-			{
-				rowSettingsEnabled = value;
-				OnPropertyChanged("RowSettingsEnabled");
-			}
-		}
+        public ICommand WebsiteButtonClick => _startProcessCommand ?? (_startProcessCommand = new StartProcessCommand(Properties.Resources.HomePage));
 
-	    /// <summary>
-	    /// Add files to table
-	    /// </summary>
-	    /// <param name="files">file collection</param>
-	    public void AddFiles(IEnumerable<string> files)
-	    {
-		    foreach (string file in files)
-		    {
-			    AddFile(file);
-		    }
-	    }
+        /// <summary>
+        /// Rename button Enabled / Disabled
+        /// </summary>
+        private bool renameButtonEnabled;
 
-	    /// <summary>
-	    /// Add file to table
-	    /// </summary>
-	    /// <param name="file">file path</param>
-	    public void AddFile(string file)
-	    {
-		    if (FileAlreadyLoaded(file))
-		    {
-			    return;
-		    }
+        public bool RenameButtonEnabled
+        {
+            get => renameButtonEnabled;
+            set
+            {
+                renameButtonEnabled = value;
+                OnPropertyChanged();
+            }
+        }
 
-		    try
-		    {
-			    GridRowViewModel newRow = new GridRowViewModel(this, file, fileNameProcessor);
-			    DataGridRows.Add(newRow);
-			    CheckGuiStates();
-		    }
-		    catch
-		    {
-			    SystemSounds.Beep.Play();
-		    }
-	    }
+        private bool contextMenuEnabled;
 
-		private void CheckGuiStates()
-		{
-			RenameButtonEnabled = ContextMenuEnabled = DataGridRows.Count > 0;
-			RowSettingsEnabled = SelectedItem != null ? Visibility.Visible : Visibility.Collapsed;
-		}
+        public bool ContextMenuEnabled
+        {
+            get => contextMenuEnabled;
+            set
+            {
+                contextMenuEnabled = value;
+                OnPropertyChanged();
+            }
+        }
 
-	    private bool FileAlreadyLoaded(string file)
-	    {
-		    foreach (GridRowViewModel item in DataGridRows)
-		    {
-			    if (item.OldFullPath == file)
-			    {
-				    return true;
-			    }
-		    }
-		    return false;
-	    }
+        private Visibility rowSettingsEnabled = Visibility.Collapsed;
 
-	    public void RemoveSelected()
-	    {
-		    DataGridRows.Remove(SelectedItem);
-		    CheckGuiStates();
-	    }
+        public Visibility RowSettingsEnabled
+        {
+            get => rowSettingsEnabled;
+            set
+            {
+                rowSettingsEnabled = value;
+                OnPropertyChanged();
+            }
+        }
 
-	    public void RemoveAll()
-	    {
-			DataGridRows = new ObservableCollection<GridRowViewModel>();
-		    CheckGuiStates();
-	    }
+        /// <summary>
+        /// Add files to table
+        /// </summary>
+        /// <param name="files">file collection</param>
+        public void AddFiles(IEnumerable<string> files)
+        {
+            foreach (string file in files)
+            {
+                AddFile(file);
+            }
+        }
 
-	    public void RenameAll()
-	    {
-	        if (DataGridRows.Count == 0)
-	        {
-	            return;
-	        }
+        /// <summary>
+        /// Add file to table
+        /// </summary>
+        /// <param name="file">file path</param>
+        public void AddFile(string file)
+        {
+            if (FileAlreadyLoaded(file))
+            {
+                return;
+            }
 
-		    bool success = true;
+            try
+            {
+                GridRowViewModel newRow = new GridRowViewModel(this, file, fileNameProcessor);
+                DataGridRows.Add(newRow);
+                CheckGuiStates();
+            }
+            catch
+            {
+                SystemSounds.Beep.Play();
+            }
+        }
 
-	        foreach (GridRowViewModel row in DataGridRows)
-	        {
-	            bool renamed = row.Rename();
-	            if (renamed)
-	            {
-	                DataGridRows.Remove(row);
-	            }
-	            success &= renamed;
-	        }
+        private void CheckGuiStates()
+        {
+            RenameButtonEnabled = ContextMenuEnabled = DataGridRows.Count > 0;
+            RowSettingsEnabled = SelectedItem != null ? Visibility.Visible : Visibility.Collapsed;
+        }
 
-		    if (success)
-		    {
-		        if (ExitAfterRename)
-		        {
-		            Application.Current.Shutdown();
+        private bool FileAlreadyLoaded(string file)
+        {
+            foreach (GridRowViewModel item in DataGridRows)
+            {
+                if (item.OldFullPath == file)
+                {
+                    return true;
                 }
-		    }
-		    else
-		    {
-			    SystemSounds.Beep.Play();
-		    }
-	    }
-	}
+            }
+
+            return false;
+        }
+
+        public void RemoveSelected()
+        {
+            DataGridRows.Remove(SelectedItem);
+            CheckGuiStates();
+        }
+
+        public void RemoveAll()
+        {
+            DataGridRows = new ObservableCollection<GridRowViewModel>();
+            CheckGuiStates();
+        }
+
+        public void RenameAll()
+        {
+            if (DataGridRows.Count == 0)
+            {
+                return;
+            }
+
+            bool success = true;
+
+            foreach (GridRowViewModel row in DataGridRows)
+            {
+                bool renamed = row.Rename();
+                if (renamed)
+                {
+                    DataGridRows.Remove(row);
+                }
+
+                success &= renamed;
+            }
+
+            if (success)
+            {
+                if (ExitAfterRename)
+                {
+                    Application.Current.Shutdown();
+                }
+            }
+            else
+            {
+                SystemSounds.Beep.Play();
+            }
+        }
+    }
 }

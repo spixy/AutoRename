@@ -2,34 +2,34 @@
 using System.Windows.Input;
 using Microsoft.Win32;
 
-namespace AutoRename
+namespace AutoRename.Commands
 {
-	public class AddFileCommand : ICommand
-	{
-		private readonly Lazy<OpenFileDialog> openFileDialog = new Lazy<OpenFileDialog>(() => new OpenFileDialog { Multiselect = true });
+    public class AddFileCommand : ICommand
+    {
+        private readonly Lazy<OpenFileDialog> openFileDialog = new Lazy<OpenFileDialog>(() => new OpenFileDialog {Multiselect = true});
 
-		private readonly MainViewModel model;
+        private readonly MainViewModel model;
 
-		public AddFileCommand(MainViewModel model)
-		{
-			this.model = model;
-		}
+        public AddFileCommand(MainViewModel model)
+        {
+            this.model = model;
+        }
 
-		public bool CanExecute(object parameter)
-		{
-			return true;
-		}
+        public bool CanExecute(object parameter)
+        {
+            return true;
+        }
 
-		public event EventHandler CanExecuteChanged;
+        public event EventHandler CanExecuteChanged;
 
-		public void Execute(object parameter)
-		{
-			bool? showDialog = openFileDialog.Value.ShowDialog();
+        public void Execute(object parameter)
+        {
+            bool? showDialog = openFileDialog.Value.ShowDialog();
 
-			if (showDialog != null && showDialog.Value)
-			{
-				model.AddFiles(openFileDialog.Value.FileNames);
-			}
-		}
-	}
+            if (showDialog.HasValue && showDialog.Value)
+            {
+                model.AddFiles(openFileDialog.Value.FileNames);
+            }
+        }
+    }
 }

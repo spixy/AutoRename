@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Windows;
 
-namespace AutoRename
+namespace AutoRename.Services
 {
     public class Persistence
     {
