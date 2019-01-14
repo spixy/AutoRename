@@ -29,11 +29,8 @@ namespace AutoRename
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
 			bool renameAutomatically = false;
-	        bool forceOverwrite = false;
 
-            ProcessArgv(ref renameAutomatically, ref forceOverwrite);
-
-			fileNameProcessor.ForceOverwrite = forceOverwrite;
+            ProcessArgv(ref renameAutomatically);
 
             if (renameAutomatically)
             {
@@ -49,7 +46,7 @@ namespace AutoRename
             }
         }
 
-        private void ProcessArgv(ref bool renameAutomatically, ref bool forceOverwrite)
+        private void ProcessArgv(ref bool renameAutomatically)
         {
             string[] argv = Environment.GetCommandLineArgs();
             bool showHelpBox = false;
@@ -73,7 +70,7 @@ namespace AutoRename
                         break;
 
                     case "-f":
-                        forceOverwrite = true;
+                        model.ForceOverwrite = true;
                         break;
 
                     case "-y":
@@ -117,7 +114,7 @@ namespace AutoRename
             }
             try
             {
-                persistence.LoadSettings(fileNameProcessor, model, this);
+                persistence.LoadSettings(model, this);
             }
             catch
             {
@@ -129,7 +126,7 @@ namespace AutoRename
         {
             try
             {
-                persistence.SaveSettings(fileNameProcessor, model, this);
+                persistence.SaveSettings(model, this);
             }
             catch
             {

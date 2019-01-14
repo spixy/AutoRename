@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Media;
@@ -7,24 +8,30 @@ using System.Windows;
 using System.Windows.Input;
 using AutoRename.Commands;
 using AutoRename.Services;
+using Microsoft.Win32;
 
 namespace AutoRename
 {
-    /// <summary>
-    /// GUI edit type
-    /// </summary>
-    public enum EditType
-    {
-        FileName,
-        UpperCase,
-        Brackets,
-        StartingNumber,
-        Visual
-    }
-
     public class MainViewModel : INotifyPropertyChanged
     {
+        private readonly Lazy<OpenFileDialog> openFileDialog = new Lazy<OpenFileDialog>(() => new OpenFileDialog { Multiselect = true });
         private readonly FileNameProcessor fileNameProcessor;
+
+        private ObservableCollection<GridRowViewModel> dataGridRows = new ObservableCollection<GridRowViewModel>();
+        private string websiteButton = Properties.Resources.WebsiteButtonVisit;
+        private GridRowViewModel selectedItem;
+        private bool showExtension;
+        private bool showFullPath;
+        private bool showGridLines;
+        private bool exitAfterRename;
+        private bool renameButtonEnabled;
+        private bool contextMenuEnabled;
+        private Visibility rowSettingsEnabled = Visibility.Collapsed;
+        private RelayCommand renameButtonCommand;
+        private RelayCommand addFileCommand;
+        private StartProcessCommand startProcessCommand;
+        private RelayCommand removeSelectedCommand;
+        private RelayCommand removeAllCommand;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -78,32 +85,9 @@ namespace AutoRename
             };
         }
 
-        private void ApplyToRows<T>(T value, [CallerMemberName]string propertyName = "")
-        {
-            if (DataGridRows.Count == 0)
-            {
-                return;
-            }
-
-            var setter = typeof(GridRowViewModel).GetProperty(propertyName).GetSetMethod();
-            object[] param = { value };
-
-            foreach (GridRowViewModel row in DataGridRows)
-            {
-                setter.Invoke(row, param);
-            }
-        }
-        
-        private void OnPropertyChanged([CallerMemberName]string propertyName = "")
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
         /// <summary>
         /// DataGrid Rows
         /// </summary>
-        private ObservableCollection<GridRowViewModel> dataGridRows = new ObservableCollection<GridRowViewModel>();
-
         public ObservableCollection<GridRowViewModel> DataGridRows
         {
             get => dataGridRows;
@@ -120,8 +104,6 @@ namespace AutoRename
         /// <summary>
         /// Website button caption
         /// </summary>
-        private string websiteButton = Properties.Resources.WebsiteButtonVisit;
-
         public string WebsiteButton
         {
             get => websiteButton;
@@ -135,11 +117,11 @@ namespace AutoRename
             }
         }
 
+        public bool ForceOverwrite { get; set; }
+
         /// <summary>
         /// Selected row in DagaGrid
         /// </summary>
-        private GridRowViewModel selectedItem;
-
         public GridRowViewModel SelectedItem
         {
             get => selectedItem;
@@ -201,8 +183,6 @@ namespace AutoRename
         /// <summary>
         /// Show extension checkbox
         /// </summary>
-        private bool showExtension;
-
         public bool ShowExtension
         {
             get => showExtension;
@@ -219,8 +199,6 @@ namespace AutoRename
         /// <summary>
         /// Show full path checkbox
         /// </summary>
-        private bool showFullPath;
-
         public bool ShowFullPath
         {
             get => showFullPath;
@@ -237,8 +215,6 @@ namespace AutoRename
         /// <summary>
         /// Show full path checkbox
         /// </summary>
-        private bool showGridLines;
-
         public bool ShowGridLines
         {
             get => showGridLines;
@@ -255,8 +231,6 @@ namespace AutoRename
         /// <summary>
         /// Show full path checkbox
         /// </summary>
-        private bool exitAfterRename;
-
         public bool ExitAfterRename
         {
             get => exitAfterRename;
@@ -270,43 +244,31 @@ namespace AutoRename
         /// <summary>
         /// Rename button
         /// </summary>
-        private RelayCommand renameButtonCommand;
-
         public ICommand RenameButtonClick => renameButtonCommand ?? (renameButtonCommand = new RelayCommand(RenameAll));
 
         /// <summary>
         /// Add file button
         /// </summary>
-        private AddFileCommand addFileCommand;
-
-        public ICommand AddFileButtonClick => addFileCommand ?? (addFileCommand = new AddFileCommand(this));
+        public ICommand AddFileButtonClick => addFileCommand ?? (addFileCommand = new RelayCommand(TryAddFiles));
 
         /// <summary>
         /// Website button
         /// </summary>
-        private StartProcessCommand startProcessCommand;
-
         public ICommand WebsiteButtonClick => startProcessCommand ?? (startProcessCommand = new StartProcessCommand(Properties.Resources.HomePage));
 
         /// <summary>
         /// Remove selected rows
         /// </summary>
-        private RelayCommand removeSelectedCommand;
-
         public ICommand RemoveSelectedCommand => removeSelectedCommand ?? (removeSelectedCommand = new RelayCommand(RemoveSelected));
 
         /// <summary>
         /// Remove all rows
         /// </summary>
-        private RelayCommand removeAllCommand;
-
         public ICommand RemoveAllCommand => removeAllCommand ?? (removeAllCommand = new RelayCommand(RemoveAll));
 
         /// <summary>
         /// Rename button Enabled / Disabled
         /// </summary>
-        private bool renameButtonEnabled;
-
         public bool RenameButtonEnabled
         {
             get => renameButtonEnabled;
@@ -316,8 +278,6 @@ namespace AutoRename
                 OnPropertyChanged();
             }
         }
-
-        private bool contextMenuEnabled;
 
         public bool ContextMenuEnabled
         {
@@ -329,8 +289,6 @@ namespace AutoRename
             }
         }
 
-        private Visibility rowSettingsEnabled = Visibility.Collapsed;
-
         public Visibility RowSettingsEnabled
         {
             get => rowSettingsEnabled;
@@ -339,6 +297,11 @@ namespace AutoRename
                 rowSettingsEnabled = value;
                 OnPropertyChanged();
             }
+        }
+
+        private void OnPropertyChanged([CallerMemberName]string propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         /// <summary>
@@ -395,6 +358,16 @@ namespace AutoRename
             return false;
         }
 
+        private void TryAddFiles()
+        {
+            bool? showDialog = openFileDialog.Value.ShowDialog();
+
+            if (showDialog.HasValue && showDialog.Value)
+            {
+                AddFiles(openFileDialog.Value.FileNames);
+            }
+        }
+
         private void RemoveSelected()
         {
             DataGridRows.Remove(SelectedItem);
@@ -415,16 +388,21 @@ namespace AutoRename
             }
 
             bool success = true;
+            var renamedRows = new List<GridRowViewModel>();
 
             foreach (GridRowViewModel row in DataGridRows)
             {
                 bool renamed = row.Rename();
                 if (renamed)
                 {
-                    DataGridRows.Remove(row);
+                    renamedRows.Add(row);
                 }
-
                 success &= renamed;
+            }
+
+            foreach (GridRowViewModel row in renamedRows)
+            {
+                DataGridRows.Remove(row);
             }
 
             if (success)
@@ -439,5 +417,17 @@ namespace AutoRename
                 SystemSounds.Beep.Play();
             }
         }
+    }
+
+    /// <summary>
+    /// GUI edit type
+    /// </summary>
+    public enum EditType
+    {
+        FileName,
+        UpperCase,
+        Brackets,
+        StartingNumber,
+        Visual
     }
 }

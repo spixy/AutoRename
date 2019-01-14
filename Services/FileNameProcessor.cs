@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
 
@@ -16,13 +17,14 @@ namespace AutoRename.Services
             new Tuple<string, string>("<", ">")
         };
 
+        [DllImport("kernel32", SetLastError = true)]
+        private static extern bool MoveFile(string lpExistingFileName, string lpNewFileName);
+
         public bool StartWithUpperCase { get; set; }
 
         public bool RemoveStartingNumber { get; set; }
 
         public bool RemoveBrackets { get; set; }
-
-        public bool ForceOverwrite { get; set; }
 
         /// <summary>
         /// Apply visual rules to input file
@@ -41,8 +43,7 @@ namespace AutoRename.Services
 
             if (showFullPath)
             {
-                return Path.GetDirectoryName(file) + Path.DirectorySeparatorChar +
-                       Path.GetFileNameWithoutExtension(file);
+                return Path.GetDirectoryName(file) + Path.DirectorySeparatorChar + Path.GetFileNameWithoutExtension(file);
             }
 
             if (showExtension)
@@ -59,33 +60,23 @@ namespace AutoRename.Services
         /// <summary>
         /// Try to rename file
         /// </summary>
-        public bool Rename(string from, string to)
+        public bool Rename(string from, string to, bool forceOverwrite)
         {
             if (from == to)
             {
                 throw new Exception("New file name must be different");
             }
 
-            if (!ForceOverwrite && File.Exists(to))
+            if (!forceOverwrite && File.Exists(to))
             {
-                if (MessageBox.Show("Do you want to overwrite " + to + "?", "File already exists",
-                                    MessageBoxButton.YesNo) == MessageBoxResult.No)
+                if (MessageBox.Show($"Do you want to overwrite {to}?", "File already exists", MessageBoxButton.YesNo) == MessageBoxResult.No)
                 {
                     return false;
                 }
             }
 
-            Directory.Move(from, to);
+            MoveFile(from, to);
             return true;
-        }
-
-        /// <summary>
-        /// Get new file name
-        /// </summary>
-        /// <param name="file">file path</param>
-        public string AutoRename(string file)
-        {
-            return AutoRename(file, StartWithUpperCase, RemoveBrackets, RemoveStartingNumber);
         }
 
         /// <summary>
@@ -95,7 +86,7 @@ namespace AutoRename.Services
         /// <param name="startWithUpperCase">custom settings</param>
         /// <param name="removeBrackets">custom settings</param>
         /// <param name="removeStartingNumber">remove 1st number</param>
-        public string AutoRename(string file, bool startWithUpperCase, bool removeBrackets, bool removeStartingNumber)
+        public string GetNewRename(string file, bool startWithUpperCase, bool removeBrackets, bool removeStartingNumber)
         {
             if (file == null)
             {
@@ -136,7 +127,7 @@ namespace AutoRename.Services
             if (removeBrackets)
             {
                 //TODO: implement via automaton maybe
-                foreach (Tuple<string, string> brackets in bracketsList)
+                foreach (var brackets in bracketsList)
                 {
                     newStr = RemoveStringInBrackets(newStr, brackets);
                 }
@@ -165,19 +156,21 @@ namespace AutoRename.Services
             do
             {
                 int startIndex = newStr.IndexOf(brackets.Item1, start, StringComparison.Ordinal);
-
                 if (startIndex == -1)
+                {
                     break;
+                }
 
                 int endIndex = newStr.IndexOf(brackets.Item2, startIndex, StringComparison.Ordinal);
-
                 if (endIndex == -1)
+                {
                     break;
+                }
 
                 newStr = newStr.Remove(startIndex, endIndex - startIndex + 1);
                 start = startIndex;
-
-            } while (true);
+            }
+            while (true);
 
             return newStr;
         }
@@ -187,10 +180,8 @@ namespace AutoRename.Services
         /// </summary>
         private static string RemoveFirstNumber(string newStr)
         {
-            int i = 0;
-            int strLength = newStr.Length;
-
-            for (; i < strLength; i++)
+            int i;
+            for (i = 0; i < newStr.Length; i++)
             {
                 if (char.IsDigit(newStr, i))
                     continue;
@@ -199,7 +190,6 @@ namespace AutoRename.Services
                 if (i == 0 || newStr[i] != '.')
                     break;
             }
-
             return newStr.Remove(0, i);
         }
 
@@ -227,7 +217,6 @@ namespace AutoRename.Services
                 {
                     newStr += file[j];
                     separatorsOnly = false;
-
                 }
             }
 
@@ -241,6 +230,7 @@ namespace AutoRename.Services
         {
             int dotIndex = file.LastIndexOf('.');
             string newStr = file.Replace('.', ' ');
+
             if (!isDirectory && dotIndex >= 0)
             {
                 newStr = newStr.ReplaceChar(dotIndex, '.');
@@ -285,8 +275,7 @@ namespace AutoRename.Services
                 [' '] = 0
             };
 
-            int strLength = str.Length;
-            for (int i = 0; i < strLength; ++i)
+            for (int i = 0; i < str.Length; ++i)
             {
                 char c = str[i];
                 switch (c)
@@ -317,10 +306,11 @@ namespace AutoRename.Services
         private static string ChangeToUpperCase(string text)
         {
             if (string.IsNullOrEmpty(text))
+            {
                 return string.Empty;
+            }
 
             char[] chars = text.ToCharArray();
-
             StringBuilder sb = new StringBuilder(chars.Length + 1);
 
             sb.Append(char.ToUpper(chars[0]));
@@ -342,7 +332,6 @@ namespace AutoRename.Services
         private static string RemoveMultipleSpaces(string file)
         {
             string newFile = string.Empty;
-
             bool lastSpace = false;
 
             foreach (char s in file)
@@ -350,15 +339,15 @@ namespace AutoRename.Services
                 if (s == ' ')
                 {
                     if (lastSpace) // next
+                    {
                         continue;
-
+                    }
                     lastSpace = true; // first
                 }
                 else
                 {
                     lastSpace = false; // none
                 }
-
                 newFile += s;
             }
 

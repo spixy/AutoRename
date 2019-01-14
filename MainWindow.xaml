@@ -6,7 +6,6 @@
 		Width="640" Height="400" MinWidth="480" MinHeight="300"
         Loaded="Window_Loaded" Closed="Window_Closed" DragEnter="Window_DragEnter" Drop="Window_Drop">
 
-
     <Window.Resources>
         <autoRename:ShowGridLinesConverter x:Key="ShowGridLinesConverter" />
     </Window.Resources>
@@ -25,31 +24,27 @@
                     <TextBlock Text="Add file" FontSize="14" TextAlignment="Center"/>
                 </Button>
 
-                <GridSplitter Width="2" IsEnabled="False"/>
+                <GridSplitter Width="4" IsEnabled="False" Background="#210080FF"/>
 
                 <Button Command="{Binding WebsiteButtonClick}" Margin="0,0,0,-1" Height="53" Width="95" >
                     <TextBlock Text="{Binding WebsiteButton}" FontSize="14" TextAlignment="Center"/>
                 </Button>
 
-                <GridSplitter Width="10" IsEnabled="False"/>
+                <GridSplitter Width="4" IsEnabled="False" Background="#210080FF"/>
 
-                <StackPanel Orientation="Vertical" Margin="0,2,0,0">
+                <StackPanel Orientation="Vertical" Margin="5,2,0,0">
                     <CheckBox Content="Words start with upper case" IsChecked="{Binding Path=StartWithUpperCase, Mode=TwoWay}" Margin="10,2,10,1"/>
                     <CheckBox Content="Remove text in brackets" IsChecked="{Binding Path=RemoveBrackets, Mode=TwoWay}" Margin="10,2,10,1"/>
                     <CheckBox Content="Remove starting number" IsChecked="{Binding Path=RemoveStartingNumber, Mode=TwoWay}" Margin="10,2,10,1"/>
                 </StackPanel>
 
-                <GridSplitter Width="4" IsEnabled="False"/>
-
-                <StackPanel Orientation="Vertical" Margin="0,2,0,0">
+                <StackPanel Orientation="Vertical" Margin="5,2,0,0">
                     <CheckBox Content="Show file extension" IsChecked="{Binding Path=ShowExtension, Mode=TwoWay}" Margin="10,2,10,1"/>
                     <CheckBox Content="Show full path" IsChecked="{Binding Path=ShowFullPath, Mode=TwoWay}" Margin="10,2,10,1"/>
                     <CheckBox Content="Show grid lines" IsChecked="{Binding Path=ShowGridLines, Mode=TwoWay}" Margin="10,2,10,1"/>
                 </StackPanel>
 
-                <GridSplitter Width="4" IsEnabled="False"/>
-
-                <StackPanel Orientation="Vertical" Margin="0,2,0,0">
+                <StackPanel Orientation="Vertical" Margin="5,2,0,0">
                     <CheckBox Content="Exit after renaming" IsChecked="{Binding Path=ExitAfterRename, Mode=TwoWay}" Margin="10,2,10,1"/>
                 </StackPanel>
 
@@ -64,6 +59,7 @@
 
             <DataGrid.Resources>
                 <Style TargetType="{x:Type DataGridCell}">
+                    <Setter Property="FontSize" Value="14"></Setter>
                     <Style.Triggers>
                         <!--<Trigger Property="IsMouseOver" Value="true"> https://stackoverflow.com/a/3702183/2576489
                             <Setter Property="Background" Value="LightGray"/>
@@ -73,13 +69,16 @@
                             <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
                             <Setter Property="BorderBrush" Value="Black" />
                         </Trigger>
+                        <DataTrigger Binding="{Binding Path=State}" Value="{x:Static autoRename:RowState.Error}">
+                            <Setter Property="Background" Value="Red" />
+                        </DataTrigger>
                     </Style.Triggers>
                 </Style>
             </DataGrid.Resources>
 
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Old name" Width="*" Binding="{Binding Path=OldViewPath}" IsReadOnly="True"></DataGridTextColumn>
-                <DataGridTextColumn Header="New name" Width="*" Binding="{Binding Path=NewViewPath, Mode=TwoWay}"></DataGridTextColumn>
+                <DataGridTextColumn Header="Current name" Width="*" Binding="{Binding Path=OldViewPath}" IsReadOnly="True"></DataGridTextColumn>
+                <DataGridTextColumn Header="New name" Width="*" Binding="{Binding Path=NewViewPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></DataGridTextColumn>
 			</DataGrid.Columns>
 
 			<DataGrid.ContextMenu>

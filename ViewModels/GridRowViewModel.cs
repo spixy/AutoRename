@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
-using System.Windows.Media;
 using AutoRename.Services;
 
 namespace AutoRename
@@ -24,36 +23,39 @@ namespace AutoRename
             {nameof(ShowExtension), EditType.Visual},
             {nameof(ShowFullPath), EditType.Visual}
         };
-        private static readonly SolidColorBrush normalBrush = new SolidColorBrush(Colors.White);
-        private static readonly SolidColorBrush errorBrush = new SolidColorBrush(Colors.Red);
 
         private readonly MainViewModel mainViewModel;
         private readonly FileNameProcessor fileNameProcessor;
 
+        private string oldViewPath;
+        private string newFullPath;
+        private string oldFullPath;
+        private string newViewPath;
+        private bool startWithUpperCase;
+        private bool removeBrackets;
+        private bool removeStartingNumber;
+        private bool showExtension;
+        private bool showFullPath;
         private bool isEditing;
+        private RowState state = RowState.Ready;
 
         public event PropertyChangedEventHandler PropertyChanged;
-
-        private void OnPropertyChanged([CallerMemberName]string propertyName = "")
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
 
         public GridRowViewModel(MainViewModel mainViewModel, string file, FileNameProcessor fileNameProcessor)
         {
             this.mainViewModel = mainViewModel;
             this.fileNameProcessor = fileNameProcessor;
 
-            OldFullPath = file;
-            OldViewPath = fileNameProcessor.ApplyVisualRules(OldFullPath, ShowExtension, ShowFullPath);
-            NewFullPath = fileNameProcessor.AutoRename(OldFullPath);
-            NewViewPath = fileNameProcessor.ApplyVisualRules(NewFullPath, ShowExtension, ShowFullPath);
-
-            startWithUpperCase = fileNameProcessor.StartWithUpperCase;
-            removeBrackets = fileNameProcessor.RemoveBrackets;
-            removeStartingNumber = fileNameProcessor.RemoveStartingNumber;
+            StartWithUpperCase = mainViewModel.StartWithUpperCase;
+            RemoveBrackets = mainViewModel.RemoveBrackets;
+            RemoveStartingNumber = mainViewModel.RemoveStartingNumber;
             ShowFullPath = mainViewModel.ShowFullPath;
             ShowExtension = mainViewModel.ShowExtension;
+
+            OldFullPath = file;
+            OldViewPath = fileNameProcessor.ApplyVisualRules(OldFullPath, ShowExtension, ShowFullPath);
+            NewFullPath = fileNameProcessor.GetNewRename(OldFullPath, StartWithUpperCase, RemoveBrackets, RemoveStartingNumber);
+            NewViewPath = fileNameProcessor.ApplyVisualRules(NewFullPath, ShowExtension, ShowFullPath);
 
             PropertyChanged += (sender, args) =>
             {
@@ -65,18 +67,16 @@ namespace AutoRename
         }
 
         /// <summary>
-        /// Background brush
+        /// Row state
         /// </summary>
-        private SolidColorBrush brush = normalBrush;
-
-        public SolidColorBrush Brush
+        public RowState State
         {
-            get => brush;
+            get => state;
             private set
             {
-                if (brush != value)
+                if (state != value)
                 {
-                    brush = value;
+                    state = value;
                     OnPropertyChanged();
                 }
             }
@@ -85,8 +85,6 @@ namespace AutoRename
         /// <summary>
         /// File - full path (hidden)
         /// </summary>
-        private string oldFullPath;
-
         public string OldFullPath
         {
             get => oldFullPath;
@@ -103,8 +101,6 @@ namespace AutoRename
         /// <summary>
         /// File - file name shown in cell
         /// </summary>
-        private string oldViewPath;
-
         public string OldViewPath
         {
             get => oldViewPath;
@@ -121,8 +117,6 @@ namespace AutoRename
         /// <summary>
         /// New file - full path (hidden)
         /// </summary>
-        private string newFullPath;
-
         public string NewFullPath
         {
             get => newFullPath;
@@ -139,8 +133,6 @@ namespace AutoRename
         /// <summary>
         /// New file - file name shown in cell
         /// </summary>
-        private string newViewPath;
-
         public string NewViewPath
         {
             get => newViewPath;
@@ -150,43 +142,10 @@ namespace AutoRename
                 {
                     newViewPath = value;
                     OnPropertyChanged();
+                    State = RowState.Ready;
                 }
             }
         }
-
-        /// <summary>
-        /// Rename file
-        /// </summary>
-        /// <returns>success or failure</returns>
-        public bool Rename()
-        {
-            try
-            {
-                if (fileNameProcessor.Rename(OldFullPath, NewFullPath))
-                {
-                    return true;
-                }
-            }
-            catch (SystemException e)
-            {
-                OnException(e);
-                MessageBox.Show(e.Message, "Error");
-            }
-            catch (Exception e)
-            {
-                OnException(e);
-            }
-
-            return false;
-        }
-
-        private void OnException(Exception e)
-        {
-            Debug.WriteLine(e);
-            Brush = errorBrush;
-        }
-
-        private bool startWithUpperCase;
 
         public bool StartWithUpperCase
         {
@@ -198,8 +157,6 @@ namespace AutoRename
             }
         }
 
-        private bool removeBrackets;
-
         public bool RemoveBrackets
         {
             get => removeBrackets;
@@ -209,9 +166,6 @@ namespace AutoRename
                 OnPropertyChanged();
             }
         }
-
-        private bool removeStartingNumber;
-
         public bool RemoveStartingNumber
         {
             get => removeStartingNumber;
@@ -221,8 +175,6 @@ namespace AutoRename
                 OnPropertyChanged();
             }
         }
-
-        private bool showExtension;
 
         public bool ShowExtension
         {
@@ -234,8 +186,6 @@ namespace AutoRename
             }
         }
 
-        private bool showFullPath;
-
         public bool ShowFullPath
         {
             get => showFullPath;
@@ -244,6 +194,39 @@ namespace AutoRename
                 showFullPath = value;
                 OnPropertyChanged();
             }
+        }
+
+        private void OnPropertyChanged([CallerMemberName]string propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        /// <summary>
+        /// Rename file
+        /// </summary>
+        /// <returns>success or failure</returns>
+        public bool Rename()
+        {
+            try
+            {
+                if (fileNameProcessor.Rename(OldFullPath, NewFullPath, mainViewModel.ForceOverwrite))
+                {
+                    State = RowState.Renamed;
+                    return true;
+                }
+            }
+            catch (SystemException e)
+            {
+                MessageBox.Show(e.Message, "Error");
+                Debug.WriteLine(e);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e);
+            }
+
+            State = RowState.Error;
+            return false;
         }
 
         /// <summary>
@@ -256,7 +239,6 @@ namespace AutoRename
             {
                 return;
             }
-
             isEditing = true;
 
             switch (type)
@@ -264,8 +246,7 @@ namespace AutoRename
                 case EditType.FileName:
                     if (mainViewModel.ShowExtension)
                     {
-                        NewFullPath = Path.GetDirectoryName(NewFullPath) + Path.DirectorySeparatorChar +
-                                      Path.GetFileName(NewViewPath);
+                        NewFullPath = Path.GetDirectoryName(NewFullPath) + Path.DirectorySeparatorChar + Path.GetFileName(NewViewPath);
                     }
                     else
                     {
@@ -278,7 +259,7 @@ namespace AutoRename
                 case EditType.UpperCase:
                 case EditType.Brackets:
                 case EditType.StartingNumber:
-                    NewFullPath = fileNameProcessor.AutoRename(OldFullPath, StartWithUpperCase, RemoveBrackets, RemoveStartingNumber);
+                    NewFullPath = fileNameProcessor.GetNewRename(OldFullPath, StartWithUpperCase, RemoveBrackets, RemoveStartingNumber);
                     NewViewPath = fileNameProcessor.ApplyVisualRules(NewFullPath, ShowExtension, ShowFullPath);
                     break;
 
@@ -290,5 +271,15 @@ namespace AutoRename
 
             isEditing = false;
         }
+    }
+
+    /// <summary>
+    /// GridRowState
+    /// </summary>
+    public enum RowState
+    {
+        Ready,
+        Error,
+        Renamed
     }
 }

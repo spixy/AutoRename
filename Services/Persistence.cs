@@ -18,7 +18,7 @@ namespace AutoRename.Services
         /// <summary>
         /// Load app settings
         /// </summary>
-        public void LoadSettings(FileNameProcessor fileNameProcessor, MainViewModel model, Window window)
+        public void LoadSettings(MainViewModel model, Window window)
         {
             string[] lines = File.ReadAllLines(FilePath);
             bool boolValue;
@@ -30,7 +30,7 @@ namespace AutoRename.Services
 
                 if (Utility.TryGetBoolValue(lineInLower, "overwrite", out boolValue))
                 {
-                    fileNameProcessor.ForceOverwrite = boolValue;
+                    model.ForceOverwrite = boolValue;
                 }
                 else if (Utility.TryGetBoolValue(lineInLower, "uppercase", out boolValue))
                 {
@@ -77,14 +77,14 @@ namespace AutoRename.Services
         /// <summary>
         /// Save app settings
         /// </summary>
-        public void SaveSettings(FileNameProcessor fileNameProcessor, MainViewModel model, Window window)
+        public void SaveSettings(MainViewModel model, Window window)
         {
             using (StreamWriter sw = new StreamWriter(FilePath, false))
             {
-                sw.WriteLine("Overwrite " + fileNameProcessor.ForceOverwrite);
-                sw.WriteLine("Uppercase " + fileNameProcessor.StartWithUpperCase);
-                sw.WriteLine("Remove brackets " + fileNameProcessor.RemoveBrackets);
-                sw.WriteLine("Remove starting number " + fileNameProcessor.RemoveStartingNumber);
+                sw.WriteLine("Overwrite " + model.ForceOverwrite);
+                sw.WriteLine("Uppercase " + model.StartWithUpperCase);
+                sw.WriteLine("Remove brackets " + model.RemoveBrackets);
+                sw.WriteLine("Remove starting number " + model.RemoveStartingNumber);
                 sw.WriteLine("Extension " + model.ShowExtension);
                 sw.WriteLine("Full path " + model.ShowFullPath);
                 sw.WriteLine("Grid lines " + model.ShowGridLines);
