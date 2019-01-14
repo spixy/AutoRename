@@ -1,9 +1,15 @@
 ﻿<Window x:Class="AutoRename.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:autoRename="clr-namespace:AutoRename"
         Icon="icon.ico" FontSize="13" AllowDrop="True"
-		Width="600" Height="380" MinWidth="480" MinHeight="300"
+		Width="640" Height="400" MinWidth="480" MinHeight="300"
         Loaded="Window_Loaded" Closed="Window_Closed" DragEnter="Window_DragEnter" Drop="Window_Drop">
+
+
+    <Window.Resources>
+        <autoRename:ShowGridLinesConverter x:Key="ShowGridLinesConverter" />
+    </Window.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
@@ -50,54 +56,43 @@
             </ToolBar>
         </ToolBarTray>
 
-        <DataGrid Grid.Row="1" Name="DataGrid" ItemsSource="{Binding Path=DataGridRows, Mode=TwoWay}" SelectedItem="{Binding Path=SelectedItem, Mode=TwoWay}"
-                      AutoGenerateColumns="False" SelectionMode="Single" SelectionUnit="FullRow" HorizontalScrollBarVisibility="Disabled" GridLinesVisibility="{Binding GridLinesVisibility}"
-                      CanUserAddRows="False" CanUserDeleteRows="True" CanUserResizeRows="False"
-                      CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="False" Background="{x:Null}">
+        <DataGrid Grid.Row="1" ItemsSource="{Binding Path=DataGridRows, Mode=TwoWay}" SelectedItem="{Binding Path=SelectedItem, Mode=TwoWay}"
+                  GridLinesVisibility="{Binding ShowGridLines, Converter={StaticResource ShowGridLinesConverter}}"
+                  AutoGenerateColumns="False" SelectionMode="Single" SelectionUnit="FullRow" HorizontalScrollBarVisibility="Disabled"
+                  Background="{x:Null}" CanUserAddRows="False" CanUserDeleteRows="True" CanUserResizeRows="False"
+                  CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="False">
 
-			<DataGrid.Columns>
-				<DataGridTextColumn Header="Old name" Width="*" Binding="{Binding Path=OldViewPath}" IsReadOnly="True">
-					<DataGridTextColumn.CellStyle>
-						<Style TargetType="DataGridCell">
-							<Setter Property="Background" Value="{Binding Path=Brush}" />
-							<Style.Triggers>
-								<Trigger Property="IsSelected" Value="True">
-									<Setter Property="Foreground" Value="White" />
-									<Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
-									<Setter Property="BorderThickness" Value="2" />
-								</Trigger>
-							</Style.Triggers>
-						</Style>
-					</DataGridTextColumn.CellStyle>
-				</DataGridTextColumn>
+            <DataGrid.Resources>
+                <Style TargetType="{x:Type DataGridCell}">
+                    <Style.Triggers>
+                        <!--<Trigger Property="IsMouseOver" Value="true"> https://stackoverflow.com/a/3702183/2576489
+                            <Setter Property="Background" Value="LightGray"/>
+                        </Trigger>-->
+                        <Trigger Property="IsSelected" Value="true">
+                            <Setter Property="Foreground" Value="White" />
+                            <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
+                            <Setter Property="BorderBrush" Value="Black" />
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.Resources>
 
-				<DataGridTextColumn Header="New name" Width="*" Binding="{Binding Path=NewViewPath, Mode=TwoWay}">
-					<DataGridTextColumn.CellStyle>
-						<Style TargetType="DataGridCell">
-							<Setter Property="Background" Value="{Binding Path=Brush}" />
-							<Style.Triggers>
-								<Trigger Property="IsSelected" Value="True">
-									<Setter Property="Foreground" Value="White" />
-									<Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
-									<Setter Property="BorderThickness" Value="2" />
-								</Trigger>
-							</Style.Triggers>
-						</Style>
-					</DataGridTextColumn.CellStyle>
-				</DataGridTextColumn>
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Old name" Width="*" Binding="{Binding Path=OldViewPath}" IsReadOnly="True"></DataGridTextColumn>
+                <DataGridTextColumn Header="New name" Width="*" Binding="{Binding Path=NewViewPath, Mode=TwoWay}"></DataGridTextColumn>
 			</DataGrid.Columns>
 
 			<DataGrid.ContextMenu>
 				<ContextMenu Name="Menu">
-                    <MenuItem Visibility="{Binding RowSettingsEnabled}" Header="Words start with upper case" IsCheckable="True" Checked="StartWithUpperCase_Click" IsChecked="{Binding SelectedItem.StartWithUpperCase}"/>
-                    <MenuItem Visibility="{Binding RowSettingsEnabled}" Header="Remove text in brackets" IsCheckable="True" Checked="RemoveBrackets_Click" IsChecked="{Binding SelectedItem.RemoveBrackets}"/>
-					<MenuItem Visibility="{Binding RowSettingsEnabled}" Header="Remove starting number" IsCheckable="True" Checked="RemoveStartingNumber_Click" IsChecked="{Binding SelectedItem.RemoveStartingNumber}"/>
+                    <MenuItem Visibility="{Binding RowSettingsEnabled}" Header="Words start with upper case" IsCheckable="True" IsChecked="{Binding SelectedItem.StartWithUpperCase, Mode=TwoWay}"/>
+                    <MenuItem Visibility="{Binding RowSettingsEnabled}" Header="Remove text in brackets" IsCheckable="True" IsChecked="{Binding SelectedItem.RemoveBrackets, Mode=TwoWay}"/>
+                    <MenuItem Visibility="{Binding RowSettingsEnabled}" Header="Remove starting number" IsCheckable="True" IsChecked="{Binding SelectedItem.RemoveStartingNumber, Mode=TwoWay}"/>
                     <Separator Visibility="{Binding RowSettingsEnabled}" />
-                    <MenuItem Visibility="{Binding RowSettingsEnabled}" Header="Show file extension" IsCheckable="True" Checked="ShowFileExtension_Click" IsChecked="{Binding SelectedItem.ShowExtension}"/>
-                    <MenuItem Visibility="{Binding RowSettingsEnabled}" Header="Show full path" IsCheckable="True" Checked="ShowFullPath_Click" IsChecked="{Binding SelectedItem.ShowFullPath}"/>
+                    <MenuItem Visibility="{Binding RowSettingsEnabled}" Header="Show file extension" IsCheckable="True"  IsChecked="{Binding SelectedItem.ShowExtension, Mode=TwoWay}"/>
+                    <MenuItem Visibility="{Binding RowSettingsEnabled}" Header="Show full path" IsCheckable="True" IsChecked="{Binding SelectedItem.ShowFullPath, Mode=TwoWay}"/>
 				    <Separator Visibility="{Binding RowSettingsEnabled}" />
-                    <MenuItem Visibility="{Binding RowSettingsEnabled}" Header="Remove" Click="Clear_Click"/>
-					<MenuItem IsEnabled="{Binding ContextMenuEnabled}" Header="Clear all" Click="ClearAll_Click"/>
+                    <MenuItem Visibility="{Binding RowSettingsEnabled}" Header="Remove" Command="{Binding RemoveSelectedCommand}"/>
+                    <MenuItem IsEnabled="{Binding ContextMenuEnabled}" Header="Clear all" Command="{Binding RemoveAllCommand}"/>
                 </ContextMenu>
             </DataGrid.ContextMenu>
 

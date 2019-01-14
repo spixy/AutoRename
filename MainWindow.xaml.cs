@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Windows;
-using System.Windows.Controls;
 using AutoRename.Services;
 
 namespace AutoRename
@@ -44,7 +43,7 @@ namespace AutoRename
             {
 	            Updater updater = new Updater(Properties.Resources.UpdateFile)
 	            {
-					UpdateAvailableAction = UpdateAvailable
+					UpdateAvailableAction = OnUpdateAvailable
 	            };
 	            updater.CheckForUpdateAvailableAsync();
             }
@@ -138,7 +137,7 @@ namespace AutoRename
             }
         }
 
-        private void UpdateAvailable()
+        private void OnUpdateAvailable()
 	    {
 		    model.WebsiteButton = Properties.Resources.WebsiteButtonUpdate;
 	    }
@@ -158,61 +157,11 @@ namespace AutoRename
 
         private void Window_Drop(object sender, DragEventArgs e)
         {
-            string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+            string[] files = (string[]) e.Data.GetData(DataFormats.FileDrop);
             if (files != null)
             {
                 model.AddFiles(files);
             }
         }
-
-		private void StartWithUpperCase_Click(object sender, RoutedEventArgs e)
-		{
-			GridRowViewModel selectedItem = model.SelectedItem;
-			MenuItem menuItem = (MenuItem) sender;
-
-			selectedItem.StartWithUpperCase = menuItem.IsChecked;
-		}
-
-		private void RemoveBrackets_Click(object sender, RoutedEventArgs e)
-		{
-			GridRowViewModel selectedItem = model.SelectedItem;
-			MenuItem menuItem = (MenuItem)sender;
-
-			selectedItem.RemoveBrackets = menuItem.IsChecked;
-		}
-
-		private void RemoveStartingNumber_Click(object sender, RoutedEventArgs e)
-		{
-			GridRowViewModel selectedItem = model.SelectedItem;
-			MenuItem menuItem = (MenuItem)sender;
-
-			selectedItem.RemoveStartingNumber = menuItem.IsChecked;
-		}
-
-        private void ShowFileExtension_Click(object sender, RoutedEventArgs e)
-        {
-            GridRowViewModel selectedItem = model.SelectedItem;
-            MenuItem menuItem = (MenuItem)sender;
-
-            selectedItem.ShowExtension = menuItem.IsChecked;
-        }
-
-        private void ShowFullPath_Click(object sender, RoutedEventArgs e)
-        {
-            GridRowViewModel selectedItem = model.SelectedItem;
-            MenuItem menuItem = (MenuItem)sender;
-
-            selectedItem.ShowFullPath = menuItem.IsChecked;
-        }
-
-        private void ClearAll_Click(object sender, RoutedEventArgs e)
-        {
-            model.RemoveAll();
-        }
-
-	    private void Clear_Click(object sender, RoutedEventArgs e)
-	    {
-		    model.RemoveSelected();
-	    }
     }
 }

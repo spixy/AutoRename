@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Media;
 using System.Runtime.CompilerServices;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
 using AutoRename.Commands;
 using AutoRename.Services;
@@ -28,58 +26,74 @@ namespace AutoRename
     {
         private readonly FileNameProcessor fileNameProcessor;
 
+        public event PropertyChangedEventHandler PropertyChanged;
+
         public MainViewModel(FileNameProcessor fileNameProcessor)
         {
             this.fileNameProcessor = fileNameProcessor;
+
+            PropertyChanged += (sender, args) =>
+            {
+                switch (args.PropertyName)
+                {
+                    case nameof(SelectedItem):
+                        CheckGuiStates();
+                        break;
+
+                    case nameof(StartWithUpperCase):
+                        foreach (var row in DataGridRows)
+                        {
+                            row.StartWithUpperCase = StartWithUpperCase;
+                        }
+                        break;
+
+                    case nameof(RemoveBrackets):
+                        foreach (var row in DataGridRows)
+                        {
+                            row.RemoveBrackets = RemoveBrackets;
+                        }
+                        break;
+
+                    case nameof(RemoveStartingNumber):
+                        foreach (var row in DataGridRows)
+                        {
+                            row.RemoveStartingNumber = RemoveStartingNumber;
+                        }
+                        break;
+
+                    case nameof(ShowFullPath):
+                        foreach (var row in DataGridRows)
+                        {
+                            row.ShowFullPath = ShowFullPath;
+                        }
+                        break;
+
+                    case nameof(ShowExtension):
+                        foreach (var row in DataGridRows)
+                        {
+                            row.ShowExtension = ShowExtension;
+                        }
+                        break;
+                }
+            };
         }
 
-        public event PropertyChangedEventHandler PropertyChanged = (sender, args) =>
+        private void ApplyToRows<T>(T value, [CallerMemberName]string propertyName = "")
         {
-            MainViewModel model = (MainViewModel) sender;
-
-            switch (args.PropertyName)
+            if (DataGridRows.Count == 0)
             {
-                case nameof(SelectedItem):
-                    model.CheckGuiStates();
-                    break;
-
-                case nameof(StartWithUpperCase):
-                    foreach (var row in model.DataGridRows)
-                    {
-                        row.StartWithUpperCase = model.StartWithUpperCase;
-                    }
-                    break;
-
-                case nameof(RemoveBrackets):
-                    foreach (var row in model.DataGridRows)
-                    {
-                        row.RemoveBrackets = model.RemoveBrackets;
-                    }
-                    break;
-
-                case nameof(RemoveStartingNumber):
-                    foreach (var row in model.DataGridRows)
-                    {
-                        row.RemoveStartingNumber = model.RemoveStartingNumber;
-                    }
-                    break;
-
-                case nameof(ShowFullPath):
-                    foreach (var row in model.DataGridRows)
-                    {
-                        row.ShowFullPath = model.showFullPath;
-                    }
-                    break;
-
-                case nameof(ShowExtension):
-                    foreach (var row in model.DataGridRows)
-                    {
-                        row.ShowExtension = model.ShowExtension;
-                    }
-                    break;
+                return;
             }
-        };
 
+            var setter = typeof(GridRowViewModel).GetProperty(propertyName).GetSetMethod();
+            object[] param = { value };
+
+            foreach (GridRowViewModel row in DataGridRows)
+            {
+                setter.Invoke(row, param);
+            }
+        }
+        
         private void OnPropertyChanged([CallerMemberName]string propertyName = "")
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -234,12 +248,9 @@ namespace AutoRename
                 {
                     showGridLines = value;
                     OnPropertyChanged();
-                    OnPropertyChanged("GridLinesVisibility");
                 }
             }
         }
-
-        public DataGridGridLinesVisibility GridLinesVisibility => ShowGridLines ? DataGridGridLinesVisibility.All : DataGridGridLinesVisibility.None;
 
         /// <summary>
         /// Show full path checkbox
@@ -273,9 +284,23 @@ namespace AutoRename
         /// <summary>
         /// Website button
         /// </summary>
-        private StartProcessCommand _startProcessCommand;
+        private StartProcessCommand startProcessCommand;
 
-        public ICommand WebsiteButtonClick => _startProcessCommand ?? (_startProcessCommand = new StartProcessCommand(Properties.Resources.HomePage));
+        public ICommand WebsiteButtonClick => startProcessCommand ?? (startProcessCommand = new StartProcessCommand(Properties.Resources.HomePage));
+
+        /// <summary>
+        /// Remove selected rows
+        /// </summary>
+        private RelayCommand removeSelectedCommand;
+
+        public ICommand RemoveSelectedCommand => removeSelectedCommand ?? (removeSelectedCommand = new RelayCommand(RemoveSelected));
+
+        /// <summary>
+        /// Remove all rows
+        /// </summary>
+        private RelayCommand removeAllCommand;
+
+        public ICommand RemoveAllCommand => removeAllCommand ?? (removeAllCommand = new RelayCommand(RemoveAll));
 
         /// <summary>
         /// Rename button Enabled / Disabled
@@ -370,13 +395,13 @@ namespace AutoRename
             return false;
         }
 
-        public void RemoveSelected()
+        private void RemoveSelected()
         {
             DataGridRows.Remove(SelectedItem);
             CheckGuiStates();
         }
 
-        public void RemoveAll()
+        private void RemoveAll()
         {
             DataGridRows = new ObservableCollection<GridRowViewModel>();
             CheckGuiStates();

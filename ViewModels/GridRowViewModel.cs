@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -14,6 +15,15 @@ namespace AutoRename
     /// </summary>
     public class GridRowViewModel : INotifyPropertyChanged
     {
+        private static readonly Dictionary<string, EditType> propertyMap = new Dictionary<string, EditType>
+        {
+            {nameof(NewViewPath), EditType.FileName},
+            {nameof(StartWithUpperCase), EditType.UpperCase},
+            {nameof(RemoveBrackets), EditType.Brackets},
+            {nameof(RemoveStartingNumber), EditType.StartingNumber},
+            {nameof(ShowExtension), EditType.Visual},
+            {nameof(ShowFullPath), EditType.Visual}
+        };
         private static readonly SolidColorBrush normalBrush = new SolidColorBrush(Colors.White);
         private static readonly SolidColorBrush errorBrush = new SolidColorBrush(Colors.Red);
 
@@ -22,34 +32,7 @@ namespace AutoRename
 
         private bool isEditing;
 
-        public event PropertyChangedEventHandler PropertyChanged = (sender, args) =>
-        {
-            GridRowViewModel model = (GridRowViewModel) sender;
-
-            switch (args.PropertyName)
-            {
-                case nameof(NewViewPath):
-                    model.ValuesChanged(EditType.FileName);
-                    break;
-
-                case nameof(StartWithUpperCase):
-                    model.ValuesChanged(EditType.UpperCase);
-                    break;
-
-                case nameof(RemoveBrackets):
-                    model.ValuesChanged(EditType.Brackets);
-                    break;
-
-                case nameof(RemoveStartingNumber):
-                    model.ValuesChanged(EditType.StartingNumber);
-                    break;
-
-                case nameof(ShowExtension):
-                case nameof(ShowFullPath):
-                    model.ValuesChanged(EditType.Visual);
-                    break;
-            }
-        };
+        public event PropertyChangedEventHandler PropertyChanged;
 
         private void OnPropertyChanged([CallerMemberName]string propertyName = "")
         {
@@ -61,20 +44,24 @@ namespace AutoRename
             this.mainViewModel = mainViewModel;
             this.fileNameProcessor = fileNameProcessor;
 
-            isEditing = true;
-
             OldFullPath = file;
             OldViewPath = fileNameProcessor.ApplyVisualRules(OldFullPath, ShowExtension, ShowFullPath);
             NewFullPath = fileNameProcessor.AutoRename(OldFullPath);
             NewViewPath = fileNameProcessor.ApplyVisualRules(NewFullPath, ShowExtension, ShowFullPath);
-
-            isEditing = false;
 
             startWithUpperCase = fileNameProcessor.StartWithUpperCase;
             removeBrackets = fileNameProcessor.RemoveBrackets;
             removeStartingNumber = fileNameProcessor.RemoveStartingNumber;
             ShowFullPath = mainViewModel.ShowFullPath;
             ShowExtension = mainViewModel.ShowExtension;
+
+            PropertyChanged += (sender, args) =>
+            {
+                if (propertyMap.TryGetValue(args.PropertyName, out EditType editType))
+                {
+                    ValuesChanged(editType);
+                }
+            };
         }
 
         /// <summary>
